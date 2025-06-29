@@ -45,6 +45,12 @@ const DynamicThemeProvider = ({ children }) => {
 			secondary: {
 				main: "#10b981",
 			},
+			warning: {
+				light: "#ffb74d",
+				main: "#ff9800",
+				dark: "#f57c00",
+				contrastText: "#000000",
+			},
 			background: {
 				default: darkMode ? "#121212" : "#f8fafc",
 				paper: darkMode ? "#1e1e1e" : "#ffffff",
