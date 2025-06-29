@@ -5,7 +5,7 @@ import {
   CardContent,
   Typography,
   Button,
-  LinearProgress,
+  CircularProgress,
   FormControl,
   InputLabel,
   Select,
@@ -117,45 +117,108 @@ const TimerScreen = () => {
   return (
     <Box sx={{ maxWidth: 600, mx: 'auto', mt: 2 }}>
       <Stack spacing={3}>
-        {/* Timer Display */}
+                {/* Timer Display */}
         <Card elevation={2}>
           <CardContent sx={{ textAlign: 'center', py: 4 }}>
-            <Typography
-              variant="h2"
-              component="div"
-              onClick={handleTimeDisplayToggle}
-              sx={{
-                fontFamily: 'monospace',
-                fontWeight: 'bold',
-                color: progress > 100 ? 'warning.main' : completed ? 'success.main' : 'primary.main',
-                fontSize: { xs: '2.5rem', sm: '3.5rem' },
-                mb: 1,
-                cursor: (isRunning && !completed) ? 'pointer' : 'default',
-                userSelect: 'none',
-                transition: 'transform 0.1s ease',
-                '&:hover': (isRunning && !completed) ? {
-                  transform: 'scale(1.02)',
-                } : {},
-                '&:active': (isRunning && !completed) ? {
-                  transform: 'scale(0.98)',
-                } : {},
-              }}
-            >
-              {formatTime(isRunning ? getDisplayTime() : elapsedTime)}
-            </Typography>
-            
-            {isRunning && getTimeLabel() && (
-              <Typography 
-                variant="caption" 
-                color="text.secondary" 
-                sx={{ 
-                  fontSize: '0.75rem', 
-                  opacity: 0.8, 
+            {isRunning ? (
+              <Box sx={{ position: 'relative', display: 'inline-flex', mb: 2 }}>
+                {/* Background circle */}
+                <CircularProgress
+                  variant="determinate"
+                  value={100}
+                  size={240}
+                  thickness={6}
+                  sx={{
+                    color: theme.palette.grey[200],
+                    position: 'absolute',
+                  }}
+                />
+                {/* Progress circle */}
+                <CircularProgress
+                  variant="determinate"
+                  value={Math.min(progress, 100)} // Cap visual progress at 100%
+                  size={240}
+                  thickness={6}
+                  sx={{
+                    color: progress > 100 
+                      ? theme.palette.warning.main 
+                      : completed 
+                        ? theme.palette.success.main 
+                        : theme.palette.primary.main,
+                    '& .MuiCircularProgress-circle': {
+                      strokeLinecap: 'round',
+                    },
+                  }}
+                />
+                {/* Timer content in center */}
+                <Box
+                  sx={{
+                    top: 0,
+                    left: 0,
+                    bottom: 0,
+                    right: 0,
+                    position: 'absolute',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Typography
+                    variant="h2"
+                    component="div"
+                    onClick={handleTimeDisplayToggle}
+                    sx={{
+                      fontFamily: 'monospace',
+                      fontWeight: 'bold',
+                      color: progress > 100 ? 'warning.main' : completed ? 'success.main' : 'primary.main',
+                      fontSize: { xs: '1.75rem', sm: '2.25rem' },
+                      cursor: (isRunning && !completed) ? 'pointer' : 'default',
+                      userSelect: 'none',
+                      transition: 'transform 0.1s ease',
+                      '&:hover': (isRunning && !completed) ? {
+                        transform: 'scale(1.02)',
+                      } : {},
+                      '&:active': (isRunning && !completed) ? {
+                        transform: 'scale(0.98)',
+                      } : {},
+                    }}
+                  >
+                    {formatTime(getDisplayTime())}
+                  </Typography>
+                  
+                  {getTimeLabel() && (
+                    <Typography 
+                      variant="caption" 
+                      color="text.secondary" 
+                      sx={{ 
+                        fontSize: '0.7rem', 
+                        opacity: 0.8,
+                        mt: 0.5
+                      }}
+                    >
+                      {getTimeLabel()}{!completed && ' • Click to toggle'}
+                    </Typography>
+                  )}
+                  
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1, fontSize: '0.8rem' }}>
+                    {Math.round(progress)}% {progress > 100 ? 'Extended' : 'Complete'}
+                  </Typography>
+                </Box>
+              </Box>
+            ) : (
+              <Typography
+                variant="h2"
+                component="div"
+                sx={{
+                  fontFamily: 'monospace',
+                  fontWeight: 'bold',
+                  color: 'primary.main',
+                  fontSize: { xs: '2.5rem', sm: '3.5rem' },
                   mb: 1,
-                  display: 'block'
                 }}
               >
-                {getTimeLabel()}{!completed && ' • Click to toggle'}
+                {formatTime(elapsedTime)}
               </Typography>
             )}
             
@@ -164,28 +227,6 @@ const TimerScreen = () => {
                 <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
                   Target: {targetHours}:00:00
                 </Typography>
-                
-                <Box sx={{ mb: 2 }}>
-                  <LinearProgress
-                    variant="determinate"
-                    value={Math.min(progress, 100)} // Cap visual progress at 100%
-                    sx={{
-                      height: 8,
-                      borderRadius: 4,
-                      backgroundColor: theme.palette.grey[200],
-                      '& .MuiLinearProgress-bar': {
-                        backgroundColor: progress > 100 
-                          ? theme.palette.warning.main 
-                          : completed 
-                            ? theme.palette.success.main 
-                            : theme.palette.primary.main,
-                      },
-                    }}
-                  />
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                    {Math.round(progress)}% {progress > 100 ? 'Extended' : 'Complete'}
-                  </Typography>
-                </Box>
 
                 {completed && (
                   <Chip
@@ -195,8 +236,6 @@ const TimerScreen = () => {
                     sx={{ fontSize: '1rem', py: 2, px: 1 }}
                   />
                 )}
-
-
               </>
             )}
           </CardContent>
