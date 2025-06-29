@@ -1,4 +1,4 @@
-import { Close as CloseIcon, Coffee as CoffeeIcon } from "@mui/icons-material";
+import { Close as CloseIcon, SportsBar as BeerIcon } from "@mui/icons-material";
 import {
 	Box,
 	Card,
@@ -39,7 +39,7 @@ const SupportDeveloper = () => {
 						}}
 					>
 						<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-							<CoffeeIcon sx={{ color: "warning.main", fontSize: 24 }} />
+							<BeerIcon sx={{ color: "warning.main", fontSize: 24 }} />
 							<Typography variant="subtitle1" fontWeight="600">
 								Support Development
 							</Typography>
