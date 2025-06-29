@@ -24,8 +24,6 @@ import {
 import {
   PlayArrow as PlayIcon,
   Stop as StopIcon,
-  Pause as PauseIcon,
-  PlayCircle as ResumeIcon,
 } from '@mui/icons-material'
 import { useFastTimer } from '../hooks/useFastTimer'
 import { useNotifications } from '../hooks/useNotifications'
@@ -34,13 +32,10 @@ const TimerScreen = () => {
   const theme = useTheme()
   const {
     isRunning,
-    isPaused,
     elapsedTime,
     targetDuration,
     startFast,
     stopFast,
-    pauseFast,
-    resumeFast,
     formatTime,
     getProgress,
     isCompleted,
@@ -201,14 +196,7 @@ const TimerScreen = () => {
                   />
                 )}
 
-                {isPaused && (
-                  <Chip
-                    label="⏸️ Paused"
-                    color="warning"
-                    variant="filled"
-                    sx={{ fontSize: '1rem', py: 2, px: 1 }}
-                  />
-                )}
+
               </>
             )}
           </CardContent>
@@ -241,31 +229,8 @@ const TimerScreen = () => {
                     startIcon={<StopIcon />}
                     onClick={handleStopClick}
                   >
-Stop Fast
+                    Stop Fast
                   </Button>
-
-                  
-                  {isPaused ? (
-                    <Button
-                      variant="contained"
-                      color="success"
-                      size="large"
-                      startIcon={<ResumeIcon />}
-                      onClick={resumeFast}
-                    >
-                      Resume
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outlined"
-                      color="warning"
-                      size="large"
-                      startIcon={<PauseIcon />}
-                      onClick={pauseFast}
-                    >
-                      Pause
-                    </Button>
-                  )}
                 </>
               )}
             </Stack>

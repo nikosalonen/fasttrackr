@@ -12,9 +12,7 @@ export const useFastTimer = () => {
 
 export const FastTimerProvider = ({ children }) => {
   const [isRunning, setIsRunning] = useState(false)
-  const [isPaused, setIsPaused] = useState(false)
   const [startTime, setStartTime] = useState(null)
-  const [pausedTime, setPausedTime] = useState(0)
   const [targetDuration, setTargetDuration] = useState(16 * 60 * 60 * 1000) // 16 hours
   const [currentFast, setCurrentFast] = useState(null)
   const [elapsedTime, setElapsedTime] = useState(0)
@@ -28,8 +26,6 @@ export const FastTimerProvider = ({ children }) => {
       setStartTime(new Date(fast.startTime))
       setTargetDuration(fast.targetDuration)
       setIsRunning(fast.isRunning)
-      setIsPaused(fast.isPaused || false)
-      setPausedTime(fast.pausedTime || 0)
     }
   }, [])
 
@@ -37,10 +33,10 @@ export const FastTimerProvider = ({ children }) => {
   useEffect(() => {
     let interval = null
     
-    if (isRunning && !isPaused && startTime) {
+    if (isRunning && startTime) {
       interval = setInterval(() => {
         const now = new Date()
-        const elapsed = now.getTime() - startTime.getTime() - pausedTime
+        const elapsed = now.getTime() - startTime.getTime()
         setElapsedTime(elapsed)
       }, 1000)
     }
@@ -50,7 +46,7 @@ export const FastTimerProvider = ({ children }) => {
         clearInterval(interval)
       }
     }
-  }, [isRunning, isPaused, startTime, pausedTime])
+  }, [isRunning, startTime])
 
   const startFast = useCallback((duration = null) => {
     const targetHours = duration || 16
@@ -62,16 +58,12 @@ export const FastTimerProvider = ({ children }) => {
       startTime: now.toISOString(),
       targetDuration: target,
       isRunning: true,
-      isPaused: false,
-      pausedTime: 0,
     }
 
     setCurrentFast(fast)
     setStartTime(now)
     setTargetDuration(target)
     setIsRunning(true)
-    setIsPaused(false)
-    setPausedTime(0)
     setElapsedTime(0)
 
     localStorage.setItem('currentFast', JSON.stringify(fast))
@@ -81,7 +73,7 @@ export const FastTimerProvider = ({ children }) => {
     if (!isRunning || !currentFast) return
 
     const endTime = new Date()
-    const actualDuration = endTime.getTime() - startTime.getTime() - pausedTime
+    const actualDuration = endTime.getTime() - startTime.getTime()
 
     // Save to history
     const fastRecord = {
@@ -91,7 +83,6 @@ export const FastTimerProvider = ({ children }) => {
       targetDuration,
       actualDuration,
       completed: actualDuration >= targetDuration,
-      pausedTime,
     }
 
     const history = JSON.parse(localStorage.getItem('fastHistory') || '[]')
@@ -106,39 +97,15 @@ export const FastTimerProvider = ({ children }) => {
 
     // Clear current fast
     setIsRunning(false)
-    setIsPaused(false)
     setCurrentFast(null)
-    setPausedTime(0)
     setElapsedTime(0)
     
     localStorage.removeItem('currentFast')
 
     return fastRecord
-  }, [isRunning, currentFast, startTime, pausedTime, targetDuration])
+  }, [isRunning, currentFast, startTime, targetDuration])
 
-  const pauseFast = useCallback(() => {
-    if (!isRunning) return
 
-    setIsPaused(true)
-    
-    if (currentFast) {
-      const updatedFast = { ...currentFast, isPaused: true }
-      setCurrentFast(updatedFast)
-      localStorage.setItem('currentFast', JSON.stringify(updatedFast))
-    }
-  }, [isRunning, currentFast])
-
-  const resumeFast = useCallback(() => {
-    if (!isRunning || !isPaused) return
-
-    setIsPaused(false)
-    
-    if (currentFast) {
-      const updatedFast = { ...currentFast, isPaused: false }
-      setCurrentFast(updatedFast)
-      localStorage.setItem('currentFast', JSON.stringify(updatedFast))
-    }
-  }, [isRunning, isPaused, currentFast])
 
   const formatTime = useCallback((milliseconds) => {
     const totalSeconds = Math.floor(milliseconds / 1000)
@@ -161,7 +128,6 @@ export const FastTimerProvider = ({ children }) => {
   const value = {
     // State
     isRunning,
-    isPaused,
     startTime,
     targetDuration,
     elapsedTime,
@@ -170,8 +136,6 @@ export const FastTimerProvider = ({ children }) => {
     // Actions
     startFast,
     stopFast,
-    pauseFast,
-    resumeFast,
     
     // Computed
     formatTime,
