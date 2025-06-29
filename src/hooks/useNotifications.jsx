@@ -110,11 +110,7 @@ export const NotificationProvider = ({ children }) => {
   const toggleNotifications = useCallback(async (enabled) => {
     setIsEnabled(enabled)
     localStorage.setItem('notificationsEnabled', enabled.toString())
-    
-    if (enabled && permission !== 'granted') {
-      await requestPermission()
-    }
-  }, [permission, requestPermission])
+  }, [])
 
   const toggleMilestoneNotifications = useCallback((enabled) => {
     setMilestoneNotifications(enabled)

@@ -34,6 +34,7 @@ const SettingsScreen = () => {
     toggleNotifications,
     toggleMilestoneNotifications,
     permission,
+    requestPermission,
   } = useNotifications()
 
   const [darkMode, setDarkMode] = useState(false)
@@ -49,8 +50,36 @@ const SettingsScreen = () => {
   }, [])
 
   const handleNotificationToggle = async (enabled) => {
-    await toggleNotifications(enabled)
-    showSnackbar(enabled ? 'Notifications enabled' : 'Notifications disabled')
+    if (enabled) {
+      // Check if notifications are supported
+      if (!('Notification' in window)) {
+        showSnackbar('Notifications are not supported in this browser')
+        return
+      }
+
+      // If permission isn't granted yet, request it
+      if (permission !== 'granted') {
+        showSnackbar('Please allow notifications when prompted by your browser')
+        const permissionResult = await requestPermission()
+        
+        if (permissionResult === 'granted') {
+          await toggleNotifications(true)
+          showSnackbar('Notifications enabled successfully!')
+        } else if (permissionResult === 'denied') {
+          showSnackbar('Notifications were denied. Please enable them in your browser settings.')
+        } else {
+          showSnackbar('Failed to enable notifications. Please try again.')
+        }
+      } else {
+        // Permission already granted
+        await toggleNotifications(true)
+        showSnackbar('Notifications enabled')
+      }
+    } else {
+      // Disabling notifications
+      await toggleNotifications(false)
+      showSnackbar('Notifications disabled')
+    }
   }
 
   const handleMilestoneToggle = (enabled) => {
@@ -62,8 +91,11 @@ const SettingsScreen = () => {
     setDarkMode(enabled)
     localStorage.setItem('darkMode', enabled.toString())
     showSnackbar(enabled ? 'Dark mode enabled' : 'Dark mode disabled')
-    // Note: In a real app, you'd update the theme context here
-    // For now, this just saves the preference
+    
+    // Trigger theme update by dispatching custom event
+    window.dispatchEvent(new CustomEvent('darkModeChanged', { 
+      detail: { darkMode: enabled } 
+    }))
   }
 
   const showSnackbar = (message) => {
@@ -202,7 +234,7 @@ const SettingsScreen = () => {
             <FormControlLabel
               control={
                 <Switch
-                  checked={notificationsEnabled}
+                  checked={notificationsEnabled && permission === 'granted'}
                   onChange={(e) => handleNotificationToggle(e.target.checked)}
                 />
               }
@@ -212,6 +244,14 @@ const SettingsScreen = () => {
             {permission === 'denied' && (
               <Alert severity="warning" size="small">
                 Notifications are blocked in your browser. Please enable them in your browser settings.
+              </Alert>
+            )}
+            
+
+            
+            {permission === 'granted' && notificationsEnabled && (
+              <Alert severity="success" size="small">
+                Notifications are enabled and working.
               </Alert>
             )}
             
