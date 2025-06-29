@@ -38,7 +38,7 @@ export const useWindowControlsOverlay = () => {
 		checkSupport();
 
 		// Listen for changes in WCO visibility
-		const handleGeometryChange = (event) => {
+		const handleGeometryChange = (_) => {
 			setIsActive(navigator.windowControlsOverlay.visible);
 			if (navigator.windowControlsOverlay.visible) {
 				setTitleBarAreaRect(

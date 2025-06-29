@@ -61,7 +61,7 @@ function App() {
 		}
 	}, []);
 
-	const handleTabChange = (event, newValue) => {
+	const handleTabChange = (_, newValue) => {
 		setCurrentTab(newValue);
 
 		// Update URL without reload
@@ -163,9 +163,9 @@ function App() {
 								backgroundColor: "background.paper",
 							}}
 						>
-							{screens.map((screen, index) => (
+							{screens.map((screen, _) => (
 								<BottomNavigationAction
-									key={index}
+									key={screen.label}
 									label={screen.label}
 									icon={screen.icon}
 								/>
@@ -182,9 +182,9 @@ function App() {
 									onChange={handleTabChange}
 									sx={{ backgroundColor: "transparent" }}
 								>
-									{screens.map((screen, index) => (
+									{screens.map((screen, _) => (
 										<BottomNavigationAction
-											key={index}
+											key={screen.label}
 											label={screen.label}
 											icon={screen.icon}
 										/>
