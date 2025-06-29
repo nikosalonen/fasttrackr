@@ -1,5 +1,9 @@
 # FastTrackr - Intermittent Fasting Timer 🍽️⏰
 
+[FastTrackr](https://fasttrackr.netlify.app/) is a simple and effective intermittent fasting timer and tracker. It's a PWA that can be installed on your home screen and used offline.
+
+[![Netlify Status](https://api.netlify.com/api/v1/badges/2de43fbb-d323-40db-b746-ca381293e77b/deploy-status)](https://app.netlify.com/projects/fasttrackr/deploys)
+
 <div align="center">
   <img src="public/icons/icon-base.svg" alt="FastTrackr Logo" width="128" height="128">
   
