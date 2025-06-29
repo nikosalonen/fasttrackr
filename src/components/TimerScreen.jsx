@@ -87,7 +87,7 @@ const TimerScreen = () => {
   }
 
   const handleTimeDisplayToggle = () => {
-    if (isRunning && !completed) {
+    if (isRunning) {
       setShowRemainingTime(!showRemainingTime)
     }
   }
@@ -121,47 +121,72 @@ const TimerScreen = () => {
         <Card elevation={2}>
           <CardContent sx={{ textAlign: 'center', py: 4 }}>
             {isRunning ? (
-              <Box sx={{ position: 'relative', display: 'inline-flex', mb: 2 }}>
-                {/* Background circle */}
-                <CircularProgress
-                  variant="determinate"
-                  value={100}
-                  size={240}
-                  thickness={6}
-                  sx={{
-                    color: theme.palette.grey[200],
-                    position: 'absolute',
-                  }}
-                />
-                {/* Progress circle */}
-                <CircularProgress
-                  variant="determinate"
-                  value={Math.min(progress, 100)} // Cap visual progress at 100%
-                  size={240}
-                  thickness={6}
-                  sx={{
-                    color: progress > 100 
-                      ? theme.palette.warning.main 
-                      : completed 
-                        ? theme.palette.success.main 
-                        : theme.palette.primary.main,
-                    '& .MuiCircularProgress-circle': {
-                      strokeLinecap: 'round',
-                    },
-                  }}
-                />
+              <Box sx={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
+                {/* Custom SVG for gradient progress */}
+                <svg width="240" height="240" style={{ transform: 'rotate(-90deg)' }}>
+                  <defs>
+                    <linearGradient id="extendedGradient" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="240" y2="240">
+                      <stop offset="0%" stopColor={theme.palette.success.main} />
+                      <stop offset="60%" stopColor={theme.palette.success.main} />
+                      <stop offset="90%" stopColor={theme.palette.warning.main} />
+                      <stop offset="100%" stopColor={theme.palette.warning.main} />
+                    </linearGradient>
+                  </defs>
+                  
+                  {/* Background circle */}
+                  <circle
+                    cx="120"
+                    cy="120"
+                    r="108"
+                    fill="none"
+                    stroke={theme.palette.grey[200]}
+                    strokeWidth="12"
+                  />
+                  
+                  {/* Base circle when extended (faded) */}
+                  {progress > 100 && (
+                    <circle
+                      cx="120"
+                      cy="120"
+                      r="108"
+                      fill="none"
+                      stroke={theme.palette.success.main}
+                      strokeWidth="12"
+                      strokeOpacity="0.4"
+                      strokeLinecap="round"
+                      strokeDasharray={`${2 * Math.PI * 108}`}
+                      strokeDashoffset="0"
+                    />
+                  )}
+                  
+                  {/* Active progress circle */}
+                  <circle
+                    cx="120"
+                    cy="120"
+                    r="108"
+                    fill="none"
+                    stroke={progress > 100 ? "url(#extendedGradient)" : (completed ? theme.palette.success.main : theme.palette.primary.main)}
+                    strokeWidth="12"
+                    strokeLinecap="round"
+                    strokeDasharray={`${2 * Math.PI * 108}`}
+                    strokeDashoffset={`${2 * Math.PI * 108 * (1 - (progress > 100 ? (progress % 100) / 100 : progress / 100))}`}
+                    style={{
+                      transition: 'stroke-dashoffset 0.3s ease',
+                    }}
+                  />
+                </svg>
                 {/* Timer content in center */}
                 <Box
                   sx={{
-                    top: 0,
-                    left: 0,
-                    bottom: 0,
-                    right: 0,
                     position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    textAlign: 'center',
                   }}
                 >
                   <Typography
@@ -173,13 +198,13 @@ const TimerScreen = () => {
                       fontWeight: 'bold',
                       color: progress > 100 ? 'warning.main' : completed ? 'success.main' : 'primary.main',
                       fontSize: { xs: '1.75rem', sm: '2.25rem' },
-                      cursor: (isRunning && !completed) ? 'pointer' : 'default',
+                      cursor: isRunning ? 'pointer' : 'default',
                       userSelect: 'none',
                       transition: 'transform 0.1s ease',
-                      '&:hover': (isRunning && !completed) ? {
+                      '&:hover': isRunning ? {
                         transform: 'scale(1.02)',
                       } : {},
-                      '&:active': (isRunning && !completed) ? {
+                      '&:active': isRunning ? {
                         transform: 'scale(0.98)',
                       } : {},
                     }}
@@ -197,7 +222,7 @@ const TimerScreen = () => {
                         mt: 0.5
                       }}
                     >
-                      {getTimeLabel()}{!completed && ' • Click to toggle'}
+                      {getTimeLabel()}{isRunning && ' • Click to toggle'}
                     </Typography>
                   )}
                   
