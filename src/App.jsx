@@ -22,9 +22,11 @@ import SettingsScreen from "./components/SettingsScreen";
 import StatsScreen from "./components/StatsScreen";
 import TimerScreen from "./components/TimerScreen";
 import UpdateNotification from "./components/UpdateNotification";
+import WelcomeScreen from "./components/WelcomeScreen";
 import { FastTimerProvider } from "./hooks/useFastTimer";
 import { NotificationProvider } from "./hooks/useNotifications";
 import { useWindowControlsOverlay } from "./hooks/useWindowControlsOverlay";
+import useAdSupport from "./hooks/useAdSupport";
 
 function App() {
 	const [currentTab, setCurrentTab] = useState(0);
@@ -32,6 +34,7 @@ function App() {
 	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 	const { isActive: isWCOActive, getTitleBarAreaCSS } =
 		useWindowControlsOverlay();
+	const { isFirstVisit, markFirstVisitComplete } = useAdSupport();
 
 	useEffect(() => {
 		// Handle URL parameters for deep linking
@@ -199,6 +202,9 @@ function App() {
 
 					{/* Service Worker Update Notifications */}
 					<UpdateNotification />
+
+					{/* Welcome Screen for First-Time Users */}
+					<WelcomeScreen open={isFirstVisit} onClose={markFirstVisitComplete} />
 				</Box>
 			</NotificationProvider>
 		</FastTimerProvider>

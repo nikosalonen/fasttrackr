@@ -100,6 +100,23 @@
 - [ ] **Notes System** - Add personal notes to fasting sessions
 - [ ] **Health Metrics** - Track additional health indicators
 
+## 💰 Monetization Features
+
+### Voluntary Ad Support
+- [x] **Welcome Screen Component** - First-time user greeting explaining voluntary ad support
+- [x] **Support Developer Button** - Subtle "Support Dev" button in settings
+- [x] **Ad Support Counter** - Track and display how many times user has helped
+- [ ] **Ad Integration Setup** - Integrate with ad network (Google AdMob, etc.)
+- [x] **Support Analytics** - Track voluntary ad engagement (privacy-respecting)
+- [x] **Thank You Messages** - Show appreciation when users view ads
+- [ ] **Support Badge/Achievement** - Reward users for supporting development
+
+### Premium Features (Future)
+- [ ] **Freemium Model Setup** - Infrastructure for free vs premium features
+- [ ] **Subscription Management** - Handle premium subscriptions
+- [ ] **Premium Features** - Advanced analytics, cloud sync, custom themes
+- [ ] **Upgrade Flow** - Smooth upgrade experience for premium features
+
 ## 🔒 Security & Privacy
 
 ### Data Protection
