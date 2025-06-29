@@ -18,7 +18,7 @@ import {
 	Typography,
 	useTheme,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import useAdSupport from "../hooks/useAdSupport";
 
 const SupportDeveloper = () => {
@@ -38,6 +38,20 @@ const SupportDeveloper = () => {
 
 	const stats = getSupportStats();
 
+	// Auto-close thank you dialog after 3 seconds with proper cleanup
+	useEffect(() => {
+		if (showThankYou) {
+			const timeoutId = setTimeout(() => {
+				setShowThankYou(false);
+			}, 3000);
+
+			// Cleanup function to clear timeout on unmount or state change
+			return () => {
+				clearTimeout(timeoutId);
+			};
+		}
+	}, [showThankYou]);
+
 	// Don't render if dismissed
 	if (isSupportDismissed) {
 		return null;
@@ -49,11 +63,6 @@ const SupportDeveloper = () => {
 			if (result.success) {
 				setThankYouMessage(result.message);
 				setShowThankYou(true);
-
-				// Auto-close thank you dialog after 3 seconds
-				setTimeout(() => {
-					setShowThankYou(false);
-				}, 3000);
 			}
 		} catch (error) {
 			console.error("Error showing support ad:", error);
