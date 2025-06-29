@@ -4,6 +4,14 @@ const AD_SUPPORT_KEY = "fasttrackr_ad_support";
 const FIRST_VISIT_KEY = "fasttrackr_first_visit";
 const SUPPORT_DISMISSED_KEY = "fasttrackr_support_dismissed";
 
+// Utility function to check if two dates are in the same month and year
+const isSameMonthAndYear = (date1, date2) => {
+	return (
+		date1.getMonth() === date2.getMonth() &&
+		date1.getFullYear() === date2.getFullYear()
+	);
+};
+
 const useAdSupport = () => {
 	// Initialize states more carefully to prevent render issues
 	const [supportCount, setSupportCount] = useState(() => {
@@ -67,10 +75,7 @@ const useAdSupport = () => {
 						const lastSupported = new Date(data.lastSupported);
 						const currentMonth = new Date();
 
-						if (
-							lastSupported.getMonth() === currentMonth.getMonth() &&
-							lastSupported.getFullYear() === currentMonth.getFullYear()
-						) {
+						if (isSameMonthAndYear(lastSupported, currentMonth)) {
 							return data.totalThisMonth || 0;
 						}
 						return 0;
@@ -107,10 +112,7 @@ const useAdSupport = () => {
 			const currentMonth = new Date();
 
 			// Check if last support was in current month
-			if (
-				lastSupported.getMonth() === currentMonth.getMonth() &&
-				lastSupported.getFullYear() === currentMonth.getFullYear()
-			) {
+			if (isSameMonthAndYear(lastSupported, currentMonth)) {
 				return data.totalThisMonth || 0;
 			}
 			return 0;
