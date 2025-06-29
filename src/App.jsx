@@ -100,7 +100,7 @@ function App() {
 					{/* App Header */}
 					<AppBar
 						position="static"
-						elevation={1}
+						elevation={3}
 						sx={{
 							// Window Controls Overlay support
 							WebkitAppRegion: isWCOActive ? "drag" : "initial",
@@ -153,6 +153,7 @@ function App() {
 					{/* Bottom Navigation for Mobile */}
 					{isMobile && (
 						<BottomNavigation
+							elevation={3}
 							value={currentTab}
 							onChange={handleTabChange}
 							sx={{
