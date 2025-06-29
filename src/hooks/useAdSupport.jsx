@@ -61,9 +61,23 @@ const useAdSupport = () => {
 			// This would be replaced with actual ad network code
 			// For now, we'll simulate an ad with a timeout
 			setTimeout(() => {
-				// Increment support count
-				const newCount = supportCount + 1;
-				setSupportCount(newCount);
+				// Get current count from localStorage to avoid stale closure
+				const getCurrentCount = () => {
+					const storedSupport = localStorage.getItem(AD_SUPPORT_KEY);
+					if (!storedSupport) return 0;
+
+					try {
+						const data = JSON.parse(storedSupport);
+						return data.count || 0;
+					} catch {
+						return 0;
+					}
+				};
+
+				// Increment support count using functional update to avoid stale state
+				const currentCount = getCurrentCount();
+				const newCount = currentCount + 1;
+				setSupportCount((prevCount) => Math.max(prevCount + 1, newCount));
 
 				// Get current month total directly to avoid dependency issues
 				const getCurrentMonthTotal = () => {
@@ -99,7 +113,7 @@ const useAdSupport = () => {
 				});
 			}, 2000); // Simulate 2-second ad
 		});
-	}, [supportCount]);
+	}, []);
 
 	// Get support count for current month
 	const getTotalThisMonth = useCallback(() => {
