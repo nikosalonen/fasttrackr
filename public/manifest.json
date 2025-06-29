@@ -47,13 +47,13 @@
   "screenshots": [
     {
       "src": "screenshots/fasttrackr.netlify.app_mobile.png",
-      "sizes": "375x812",
+      "sizes": "800x1700",
       "type": "image/png",
       "form_factor": "narrow"
     },
     {
       "src": "screenshots/fasttrackr.netlify.app_desktop.png",
-      "sizes": "1280x720",
+      "sizes": "2670x2246",
       "type": "image/png",
       "form_factor": "wide"
     }
