@@ -52,6 +52,7 @@ const TimerScreen = () => {
   const [customHours, setCustomHours] = useState('')
   const [showCustomInput, setShowCustomInput] = useState(false)
   const [showStopConfirmation, setShowStopConfirmation] = useState(false)
+  const [showRemainingTime, setShowRemainingTime] = useState(false)
 
   const progress = getProgress()
   const completed = isCompleted()
@@ -90,6 +91,32 @@ const TimerScreen = () => {
     setShowCustomInput(value === 'custom')
   }
 
+  const handleTimeDisplayToggle = () => {
+    if (isRunning && !completed) {
+      setShowRemainingTime(!showRemainingTime)
+    }
+  }
+
+  const getRemainingTime = () => {
+    if (!isRunning || completed) return 0
+    const remaining = targetDuration - elapsedTime
+    return Math.max(0, remaining)
+  }
+
+  const getDisplayTime = () => {
+    if (!isRunning) return 0
+    // If fast is completed, always show elapsed time
+    if (completed) return elapsedTime
+    return showRemainingTime ? getRemainingTime() : elapsedTime
+  }
+
+  const getTimeLabel = () => {
+    if (!isRunning) return ''
+    // If fast is completed, always show elapsed
+    if (completed) return 'Elapsed'
+    return showRemainingTime ? 'Remaining' : 'Elapsed'
+  }
+
   const targetHours = Math.floor(targetDuration / (1000 * 60 * 60))
 
   return (
@@ -101,16 +128,41 @@ const TimerScreen = () => {
             <Typography
               variant="h2"
               component="div"
+              onClick={handleTimeDisplayToggle}
               sx={{
                 fontFamily: 'monospace',
                 fontWeight: 'bold',
                 color: completed ? 'success.main' : 'primary.main',
                 fontSize: { xs: '2.5rem', sm: '3.5rem' },
                 mb: 1,
+                cursor: (isRunning && !completed) ? 'pointer' : 'default',
+                userSelect: 'none',
+                transition: 'transform 0.1s ease',
+                '&:hover': (isRunning && !completed) ? {
+                  transform: 'scale(1.02)',
+                } : {},
+                '&:active': (isRunning && !completed) ? {
+                  transform: 'scale(0.98)',
+                } : {},
               }}
             >
-{formatTime(elapsedTime)}
+              {formatTime(isRunning ? getDisplayTime() : elapsedTime)}
             </Typography>
+            
+            {isRunning && getTimeLabel() && (
+              <Typography 
+                variant="caption" 
+                color="text.secondary" 
+                sx={{ 
+                  fontSize: '0.75rem', 
+                  opacity: 0.8, 
+                  mb: 1,
+                  display: 'block'
+                }}
+              >
+                {getTimeLabel()}{!completed && ' • Click to toggle'}
+              </Typography>
+            )}
             
             {isRunning && (
               <>
