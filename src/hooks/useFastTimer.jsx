@@ -105,7 +105,26 @@ export const FastTimerProvider = ({ children }) => {
     return fastRecord
   }, [isRunning, currentFast, startTime, targetDuration])
 
+  const modifyStartTime = useCallback((newStartTime) => {
+    if (!isRunning || !currentFast) return
 
+    const updatedStartTime = new Date(newStartTime)
+    const updatedFast = {
+      ...currentFast,
+      startTime: updatedStartTime.toISOString(),
+    }
+
+    setCurrentFast(updatedFast)
+    setStartTime(updatedStartTime)
+    
+    // Update localStorage
+    localStorage.setItem('currentFast', JSON.stringify(updatedFast))
+
+    // Immediately update elapsed time
+    const now = new Date()
+    const elapsed = now.getTime() - updatedStartTime.getTime()
+    setElapsedTime(elapsed)
+  }, [isRunning, currentFast])
 
   const formatTime = useCallback((milliseconds) => {
     const totalSeconds = Math.floor(milliseconds / 1000)
@@ -136,6 +155,7 @@ export const FastTimerProvider = ({ children }) => {
     // Actions
     startFast,
     stopFast,
+    modifyStartTime,
     
     // Computed
     formatTime,

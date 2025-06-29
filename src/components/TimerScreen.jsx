@@ -20,10 +20,17 @@ import {
   DialogContent,
   DialogActions,
   DialogContentText,
+  IconButton,
+  Collapse,
 } from '@mui/material'
 import {
   PlayArrow as PlayIcon,
   Stop as StopIcon,
+  Edit as EditIcon,
+  Save as SaveIcon,
+  Cancel as CancelIcon,
+  ExpandMore as ExpandMoreIcon,
+  Schedule as ScheduleIcon,
 } from '@mui/icons-material'
 import { useFastTimer } from '../hooks/useFastTimer'
 import { useNotifications } from '../hooks/useNotifications'
@@ -34,8 +41,10 @@ const TimerScreen = () => {
     isRunning,
     elapsedTime,
     targetDuration,
+    startTime,
     startFast,
     stopFast,
+    modifyStartTime,
     formatTime,
     getProgress,
     isCompleted,
@@ -55,6 +64,9 @@ const TimerScreen = () => {
   })
   const [showStopConfirmation, setShowStopConfirmation] = useState(false)
   const [showRemainingTime, setShowRemainingTime] = useState(false)
+  const [showStartTimeSection, setShowStartTimeSection] = useState(false)
+  const [isEditingStartTime, setIsEditingStartTime] = useState(false)
+  const [tempStartTime, setTempStartTime] = useState('')
 
   const progress = getProgress()
   const completed = isCompleted()
@@ -124,6 +136,41 @@ const TimerScreen = () => {
     // If fast is completed, always show elapsed
     if (completed) return 'Elapsed'
     return showRemainingTime ? 'Remaining' : 'Elapsed'
+  }
+
+  const handleEditStartTime = () => {
+    if (startTime) {
+      // Format the current start time for the datetime-local input
+      const localTime = new Date(startTime.getTime() - startTime.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+      setTempStartTime(localTime)
+      setIsEditingStartTime(true)
+    }
+  }
+
+  const handleSaveStartTime = () => {
+    if (tempStartTime) {
+      const newStartTime = new Date(tempStartTime)
+      modifyStartTime(newStartTime)
+      setIsEditingStartTime(false)
+      setTempStartTime('')
+    }
+  }
+
+  const handleCancelEditStartTime = () => {
+    setIsEditingStartTime(false)
+    setTempStartTime('')
+  }
+
+  const formatStartTime = (date) => {
+    if (!date) return ''
+    return date.toLocaleString(undefined, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    })
   }
 
   const targetHours = Math.floor(targetDuration / (1000 * 60 * 60))
@@ -279,6 +326,83 @@ const TimerScreen = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Start Time Section */}
+        {isRunning && (
+          <Card elevation={1}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <ScheduleIcon color="primary" fontSize="small" />
+                  <Typography variant="h6">
+                    Start Time
+                  </Typography>
+                </Box>
+                <IconButton
+                  size="small"
+                  onClick={() => setShowStartTimeSection(!showStartTimeSection)}
+                  sx={{
+                    transform: showStartTimeSection ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease',
+                  }}
+                >
+                  <ExpandMoreIcon />
+                </IconButton>
+              </Box>
+              
+              <Collapse in={showStartTimeSection}>
+                <Box sx={{ pt: 2 }}>
+                  {!isEditingStartTime ? (
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+                      <Typography variant="body1" sx={{ fontFamily: 'monospace' }}>
+                        {startTime ? formatStartTime(startTime) : 'Not set'}
+                      </Typography>
+                      <Button
+                        size="small"
+                        startIcon={<EditIcon />}
+                        onClick={handleEditStartTime}
+                        variant="outlined"
+                      >
+                        Edit
+                      </Button>
+                    </Box>
+                  ) : (
+                    <Stack spacing={2}>
+                      <TextField
+                        label="Start Time"
+                        type="datetime-local"
+                        value={tempStartTime}
+                        onChange={(e) => setTempStartTime(e.target.value)}
+                        fullWidth
+                        size="small"
+                        InputLabelProps={{
+                          shrink: true,
+                        }}
+                      />
+                      <Stack direction="row" spacing={1} justifyContent="flex-end">
+                        <Button
+                          size="small"
+                          startIcon={<CancelIcon />}
+                          onClick={handleCancelEditStartTime}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          startIcon={<SaveIcon />}
+                          onClick={handleSaveStartTime}
+                        >
+                          Save
+                        </Button>
+                      </Stack>
+                    </Stack>
+                  )}
+                </Box>
+              </Collapse>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Timer Controls */}
         <Card elevation={1}>
