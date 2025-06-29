@@ -1,0 +1,368 @@
+import React, { useState, useEffect } from 'react'
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Switch,
+  FormControlLabel,
+  Button,
+  Stack,
+  Divider,
+  Alert,
+  Snackbar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+} from '@mui/material'
+import {
+  Notifications as NotificationIcon,
+  DarkMode as DarkModeIcon,
+  Download as ExportIcon,
+  Upload as ImportIcon,
+  Delete as DeleteIcon,
+  Info as InfoIcon,
+} from '@mui/icons-material'
+import { useNotifications } from '../hooks/useNotifications'
+
+const SettingsScreen = () => {
+  const {
+    isEnabled: notificationsEnabled,
+    milestoneNotifications,
+    toggleNotifications,
+    toggleMilestoneNotifications,
+    permission,
+  } = useNotifications()
+
+  const [darkMode, setDarkMode] = useState(false)
+  const [snackbarOpen, setSnackbarOpen] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [clearDialogOpen, setClearDialogOpen] = useState(false)
+  const [importDialogOpen, setImportDialogOpen] = useState(false)
+  const [importData, setImportData] = useState('')
+
+  useEffect(() => {
+    // Load dark mode setting
+    setDarkMode(localStorage.getItem('darkMode') === 'true')
+  }, [])
+
+  const handleNotificationToggle = async (enabled) => {
+    await toggleNotifications(enabled)
+    showSnackbar(enabled ? 'Notifications enabled' : 'Notifications disabled')
+  }
+
+  const handleMilestoneToggle = (enabled) => {
+    toggleMilestoneNotifications(enabled)
+    showSnackbar(enabled ? 'Milestone notifications enabled' : 'Milestone notifications disabled')
+  }
+
+  const handleDarkModeToggle = (enabled) => {
+    setDarkMode(enabled)
+    localStorage.setItem('darkMode', enabled.toString())
+    showSnackbar(enabled ? 'Dark mode enabled' : 'Dark mode disabled')
+    // Note: In a real app, you'd update the theme context here
+    // For now, this just saves the preference
+  }
+
+  const showSnackbar = (message) => {
+    setSnackbarMessage(message)
+    setSnackbarOpen(true)
+  }
+
+  const handleExportData = () => {
+    try {
+      const fastHistory = JSON.parse(localStorage.getItem('fastHistory') || '[]')
+      const settings = {
+        notificationsEnabled: localStorage.getItem('notificationsEnabled'),
+        milestoneNotifications: localStorage.getItem('milestoneNotifications'),
+        darkMode: localStorage.getItem('darkMode'),
+      }
+
+      const exportData = {
+        version: '1.0',
+        exportDate: new Date().toISOString(),
+        fastHistory,
+        settings,
+      }
+
+      const dataStr = JSON.stringify(exportData, null, 2)
+      const dataBlob = new Blob([dataStr], { type: 'application/json' })
+      const url = URL.createObjectURL(dataBlob)
+      
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `fasttrackr-export-${new Date().toISOString().split('T')[0]}.json`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+
+      showSnackbar('Data exported successfully!')
+    } catch (error) {
+      console.error('Export failed:', error)
+      showSnackbar('Export failed. Please try again.')
+    }
+  }
+
+  const handleImportData = () => {
+    try {
+      const data = JSON.parse(importData)
+      
+      if (!data.version || !data.fastHistory) {
+        throw new Error('Invalid data format')
+      }
+
+      // Validate data structure
+      if (!Array.isArray(data.fastHistory)) {
+        throw new Error('Invalid fast history format')
+      }
+
+      // Import fast history
+      const existingHistory = JSON.parse(localStorage.getItem('fastHistory') || '[]')
+      const mergedHistory = [...data.fastHistory, ...existingHistory]
+      
+      // Remove duplicates based on ID
+      const uniqueHistory = mergedHistory.filter((fast, index, self) => 
+        index === self.findIndex(f => f.id === fast.id)
+      )
+      
+      // Sort by date
+      uniqueHistory.sort((a, b) => new Date(b.startTime) - new Date(a.startTime))
+      
+      localStorage.setItem('fastHistory', JSON.stringify(uniqueHistory))
+
+      // Import settings if available
+      if (data.settings) {
+        if (data.settings.notificationsEnabled !== undefined) {
+          localStorage.setItem('notificationsEnabled', data.settings.notificationsEnabled)
+        }
+        if (data.settings.milestoneNotifications !== undefined) {
+          localStorage.setItem('milestoneNotifications', data.settings.milestoneNotifications)
+        }
+        if (data.settings.darkMode !== undefined) {
+          localStorage.setItem('darkMode', data.settings.darkMode)
+          setDarkMode(data.settings.darkMode === 'true')
+        }
+      }
+
+      setImportDialogOpen(false)
+      setImportData('')
+      showSnackbar(`Imported ${data.fastHistory.length} fasts successfully!`)
+      
+      // Refresh the page to reflect changes
+      setTimeout(() => {
+        window.location.reload()
+      }, 2000)
+    } catch (error) {
+      console.error('Import failed:', error)
+      showSnackbar('Import failed. Please check your data format.')
+    }
+  }
+
+  const handleClearAllData = () => {
+    localStorage.removeItem('fastHistory')
+    localStorage.removeItem('currentFast')
+    localStorage.removeItem('notificationsEnabled')
+    localStorage.removeItem('milestoneNotifications')
+    localStorage.removeItem('darkMode')
+    
+    setClearDialogOpen(false)
+    showSnackbar('All data cleared successfully!')
+    
+    // Refresh the page
+    setTimeout(() => {
+      window.location.reload()
+    }, 1500)
+  }
+
+  const SettingCard = ({ title, icon, children }) => (
+    <Card elevation={1}>
+      <CardContent>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+          {icon}
+          <Typography variant="h6">{title}</Typography>
+        </Box>
+        {children}
+      </CardContent>
+    </Card>
+  )
+
+  return (
+    <Box sx={{ maxWidth: 600, mx: 'auto' }}>
+      <Typography variant="h4" gutterBottom sx={{ mb: 3 }}>
+        Settings
+      </Typography>
+
+      <Stack spacing={3}>
+        {/* Notifications */}
+        <SettingCard title="Notifications" icon={<NotificationIcon color="primary" />}>
+          <Stack spacing={2}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={notificationsEnabled}
+                  onChange={(e) => handleNotificationToggle(e.target.checked)}
+                />
+              }
+              label="Enable Notifications"
+            />
+            
+            {permission === 'denied' && (
+              <Alert severity="warning" size="small">
+                Notifications are blocked in your browser. Please enable them in your browser settings.
+              </Alert>
+            )}
+            
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={milestoneNotifications}
+                  onChange={(e) => handleMilestoneToggle(e.target.checked)}
+                  disabled={!notificationsEnabled}
+                />
+              }
+              label="Milestone Notifications"
+            />
+            
+            <Typography variant="body2" color="text.secondary">
+              Get notified when you complete fasts and reach milestones like 16 hours, 24 hours, etc.
+            </Typography>
+          </Stack>
+        </SettingCard>
+
+        {/* Appearance */}
+        <SettingCard title="Appearance" icon={<DarkModeIcon color="primary" />}>
+          <Stack spacing={2}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={darkMode}
+                  onChange={(e) => handleDarkModeToggle(e.target.checked)}
+                />
+              }
+              label="Dark Mode"
+            />
+            
+            <Typography variant="body2" color="text.secondary">
+              Toggle between light and dark themes for better viewing comfort.
+            </Typography>
+          </Stack>
+        </SettingCard>
+
+        {/* Data Management */}
+        <SettingCard title="Data Management" icon={<InfoIcon color="primary" />}>
+          <Stack spacing={2}>
+            <Button
+              variant="outlined"
+              startIcon={<ExportIcon />}
+              onClick={handleExportData}
+              fullWidth
+            >
+              Export Data
+            </Button>
+            
+            <Button
+              variant="outlined"
+              startIcon={<ImportIcon />}
+              onClick={() => setImportDialogOpen(true)}
+              fullWidth
+            >
+              Import Data
+            </Button>
+            
+            <Divider />
+            
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<DeleteIcon />}
+              onClick={() => setClearDialogOpen(true)}
+              fullWidth
+            >
+              Clear All Data
+            </Button>
+            
+            <Typography variant="body2" color="text.secondary">
+              Export your data to backup your fasting history. Import to restore from a backup.
+            </Typography>
+          </Stack>
+        </SettingCard>
+
+        {/* App Info */}
+        <Card elevation={1}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              About FastTrackr
+            </Typography>
+            <Typography variant="body2" color="text.secondary" paragraph>
+              FastTrackr is a Progressive Web App (PWA) designed to help you track your intermittent fasting journey. 
+              Install it on your device for the best experience!
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Version: 1.0.0
+              <br />
+              Built with Material UI and React
+            </Typography>
+          </CardContent>
+        </Card>
+      </Stack>
+
+      {/* Confirmation Dialogs */}
+      <Dialog open={clearDialogOpen} onClose={() => setClearDialogOpen(false)}>
+        <DialogTitle>Clear All Data?</DialogTitle>
+        <DialogContent>
+          <Typography>
+            This will permanently delete all your fasting history, current fast, and settings. 
+            This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setClearDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleClearAllData} color="error">
+            Clear All Data
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={importDialogOpen} onClose={() => setImportDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Import Data</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Paste your exported FastTrackr data below:
+          </Typography>
+          <TextField
+            multiline
+            rows={10}
+            fullWidth
+            value={importData}
+            onChange={(e) => setImportData(e.target.value)}
+            placeholder="Paste your JSON data here..."
+            variant="outlined"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setImportDialogOpen(false)}>Cancel</Button>
+          <Button 
+            onClick={handleImportData} 
+            variant="contained"
+            disabled={!importData.trim()}
+          >
+            Import
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        message={snackbarMessage}
+      />
+    </Box>
+  )
+}
+
+export default SettingsScreen 
