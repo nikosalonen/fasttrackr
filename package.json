@@ -1,50 +1,50 @@
 {
-  "name": "fasttrackr",
-  "version": "1.0.0",
-  "description": "FastTrackr - A Progressive Web App for tracking intermittent fasting",
-  "main": "index.js",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "start": "npm run dev",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "validate": "npx pwa-asset-generator --help > /dev/null && echo 'PWA tools available'",
-    "icons": "npx pwa-asset-generator public/icons/icon-base.svg public/icons/ --background '#2563eb' --theme-color '#2563eb'"
-  },
-  "keywords": [
-    "pwa",
-    "fasting",
-    "intermittent-fasting",
-    "health",
-    "fitness",
-    "mobile-app",
-    "offline"
-  ],
-  "author": "",
-  "license": "ISC",
-  "type": "module",
-  "devDependencies": {
-    "@biomejs/biome": "2.0.6",
-    "@vitejs/plugin-react": "^4.6.0",
-    "pwa-asset-generator": "^8.0.0",
-    "serve": "^14.2.1",
-    "vite": "^7.0.0"
-  },
-  "pwa": {
-    "name": "FastTrackr",
-    "short_name": "FastTrackr",
-    "theme_color": "#2563eb",
-    "background_color": "#ffffff"
-  },
-  "dependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
-    "@mui/icons-material": "^7.1.2",
-    "@mui/material": "^7.1.2",
-    "@mui/x-date-pickers": "^8.6.0",
-    "dayjs": "^1.11.13",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
-  }
+	"name": "fasttrackr",
+	"version": "1.0.0",
+	"description": "FastTrackr - A Progressive Web App for tracking intermittent fasting",
+	"main": "index.js",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview",
+		"start": "npm run dev",
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"validate": "npx pwa-asset-generator --help > /dev/null && echo 'PWA tools available'",
+		"icons": "npx pwa-asset-generator public/icons/icon-base.svg public/icons/ --background '#2563eb' --theme-color '#2563eb'"
+	},
+	"keywords": [
+		"pwa",
+		"fasting",
+		"intermittent-fasting",
+		"health",
+		"fitness",
+		"mobile-app",
+		"offline"
+	],
+	"author": "",
+	"license": "ISC",
+	"type": "module",
+	"devDependencies": {
+		"@biomejs/biome": "2.0.6",
+		"@vitejs/plugin-react": "^4.6.0",
+		"pwa-asset-generator": "^8.0.0",
+		"serve": "^14.2.1",
+		"vite": "^7.0.0"
+	},
+	"pwa": {
+		"name": "FastTrackr",
+		"short_name": "FastTrackr",
+		"theme_color": "#2563eb",
+		"background_color": "#ffffff"
+	},
+	"dependencies": {
+		"@emotion/react": "^11.14.0",
+		"@emotion/styled": "^11.14.1",
+		"@mui/icons-material": "^7.1.2",
+		"@mui/material": "^7.1.2",
+		"@mui/x-date-pickers": "^8.6.0",
+		"dayjs": "^1.11.13",
+		"react": "^19.1.0",
+		"react-dom": "^19.1.0"
+	}
 }
