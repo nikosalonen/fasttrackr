@@ -74,7 +74,7 @@ const SupportDeveloper = () => {
 							}}
 						>
 							<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-								<CoffeeIcon sx={{ color: "orange.main", fontSize: 24 }} />
+								<CoffeeIcon sx={{ color: "warning.main", fontSize: 24 }} />
 								<Typography variant="subtitle1" fontWeight="600">
 									Support Development
 								</Typography>
@@ -105,7 +105,7 @@ const SupportDeveloper = () => {
 							<Box
 								sx={{
 									p: 2,
-									bgcolor: "success.50",
+									bgcolor: "success.light",
 									borderRadius: 1,
 									border: `1px solid ${theme.palette.success.main}20`,
 								}}
@@ -137,9 +137,9 @@ const SupportDeveloper = () => {
 								borderRadius: 2,
 								textTransform: "none",
 								fontWeight: 600,
-								bgcolor: "orange.main",
+								bgcolor: "warning.main",
 								"&:hover": {
-									bgcolor: "orange.dark",
+									bgcolor: "warning.dark",
 								},
 							}}
 						>
