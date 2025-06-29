@@ -26,15 +26,20 @@ import WelcomeScreen from "./components/WelcomeScreen";
 import { FastTimerProvider } from "./hooks/useFastTimer";
 import { NotificationProvider } from "./hooks/useNotifications";
 import { useWindowControlsOverlay } from "./hooks/useWindowControlsOverlay";
-import useAdSupport from "./hooks/useAdSupport";
-
 function App() {
 	const [currentTab, setCurrentTab] = useState(0);
+	const [isFirstVisit, setIsFirstVisit] = useState(() => {
+		return localStorage.getItem("fasttrackr_first_visit") !== "false";
+	});
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 	const { isActive: isWCOActive, getTitleBarAreaCSS } =
 		useWindowControlsOverlay();
-	const { isFirstVisit, markFirstVisitComplete } = useAdSupport();
+
+	const markFirstVisitComplete = () => {
+		localStorage.setItem("fasttrackr_first_visit", "false");
+		setIsFirstVisit(false);
+	};
 
 	useEffect(() => {
 		// Handle URL parameters for deep linking

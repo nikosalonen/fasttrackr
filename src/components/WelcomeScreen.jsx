@@ -109,9 +109,8 @@ const WelcomeScreen = ({ open, onClose }) => {
 							sx={{ lineHeight: 1.6 }}
 						>
 							If you'd like to support the development of FastTrackr, you can
-							voluntarily view an advertisement occasionally. You'll find a{" "}
-							<strong>"☕ Support Dev"</strong> button in the settings - but
-							it's entirely up to you!
+							buy me a coffee! You'll find a <strong>"Buy Me a Coffee"</strong>{" "}
+							button in the settings - but it's entirely up to you!
 						</Typography>
 
 						<Box
@@ -129,8 +128,8 @@ const WelcomeScreen = ({ open, onClose }) => {
 								fontStyle="italic"
 							>
 								💡 <strong>No pressure, no reminders</strong> - just click when
-								you want to help. Every voluntary view helps keep FastTrackr
-								free and ad-free for everyone.
+								you want to help. Your support helps keep FastTrackr free and
+								ad-free for everyone.
 							</Typography>
 						</Box>
 					</Box>
