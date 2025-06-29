@@ -1,13 +1,36 @@
 {
   "name": "fasttrackr",
   "version": "1.0.0",
-  "description": "",
+  "description": "FastTrackr - A Progressive Web App for tracking intermittent fasting",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "npx serve . -p 3000",
+    "dev": "npx serve . -p 3000 --live",
+    "build": "echo 'No build step required for vanilla JS PWA'",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "validate": "npx pwa-asset-generator --help > /dev/null && echo 'PWA tools available'",
+    "icons": "npx pwa-asset-generator icons/icon-base.svg icons/ --background '#2563eb' --theme-color '#2563eb'"
   },
-  "keywords": [],
+  "keywords": [
+    "pwa",
+    "fasting",
+    "intermittent-fasting",
+    "health",
+    "fitness",
+    "mobile-app",
+    "offline"
+  ],
   "author": "",
   "license": "ISC",
-  "type": "commonjs"
+  "type": "commonjs",
+  "devDependencies": {
+    "serve": "^14.2.1",
+    "pwa-asset-generator": "^6.3.1"
+  },
+  "pwa": {
+    "name": "FastTrackr",
+    "short_name": "FastTrackr",
+    "theme_color": "#2563eb",
+    "background_color": "#ffffff"
+  }
 }

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="FastTrackr - Track your fasting journey with ease">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="FastTrackr">
+    
+    <title>FastTrackr - Fasting Tracker</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16x16.png">
+    <link rel="apple-touch-icon" href="icons/icon-180x180.png">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Loading Screen -->
+        <div id="loading" class="loading-screen">
+            <div class="loading-content">
+                <div class="loading-icon">⏰</div>
+                <h1>FastTrackr</h1>
+                <p>Loading...</p>
+            </div>
+        </div>
+
+        <!-- App Header -->
+        <header class="app-header">
+            <h1 class="app-title">FastTrackr</h1>
+            <button id="menu-btn" class="menu-btn" aria-label="Menu">☰</button>
+        </header>
+
+        <!-- Navigation -->
+        <nav id="nav-menu" class="nav-menu hidden">
+            <button id="timer-tab" class="nav-btn active">Timer</button>
+            <button id="history-tab" class="nav-btn">History</button>
+            <button id="stats-tab" class="nav-btn">Stats</button>
+            <button id="settings-tab" class="nav-btn">Settings</button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Timer Screen -->
+            <section id="timer-screen" class="screen active">
+                <div class="timer-container">
+                    <div class="timer-display">
+                        <div id="elapsed-time" class="elapsed-time">00:00:00</div>
+                        <div id="target-time" class="target-time">Target: 16:00:00</div>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div id="progress-fill" class="progress-fill"></div>
+                        </div>
+                        <div id="progress-text" class="progress-text">0%</div>
+                    </div>
+
+                    <div class="timer-controls">
+                        <button id="start-btn" class="btn btn-primary">Start Fast</button>
+                        <button id="stop-btn" class="btn btn-secondary hidden">Stop Fast</button>
+                        <button id="pause-btn" class="btn btn-warning hidden">Pause</button>
+                    </div>
+
+                    <div class="fast-setup">
+                        <label for="fast-duration">Fast Duration:</label>
+                        <select id="fast-duration" class="duration-select">
+                            <option value="16">16 hours</option>
+                            <option value="18">18 hours</option>
+                            <option value="20">20 hours</option>
+                            <option value="24">24 hours</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                        <input type="number" id="custom-hours" class="custom-input hidden" placeholder="Hours" min="1" max="168">
+                    </div>
+                </div>
+            </section>
+
+            <!-- History Screen -->
+            <section id="history-screen" class="screen">
+                <div class="history-container">
+                    <h2>Fast History</h2>
+                    <div id="history-list" class="history-list">
+                        <p class="empty-state">No fasts recorded yet. Start your first fast!</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stats Screen -->
+            <section id="stats-screen" class="screen">
+                <div class="stats-container">
+                    <h2>Statistics</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="total-fasts">0</div>
+                            <div class="stat-label">Total Fasts</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="avg-duration">0h</div>
+                            <div class="stat-label">Average Duration</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="longest-fast">0h</div>
+                            <div class="stat-label">Longest Fast</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="current-streak">0</div>
+                            <div class="stat-label">Current Streak</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Screen -->
+            <section id="settings-screen" class="screen">
+                <div class="settings-container">
+                    <h2>Settings</h2>
+                    <div class="settings-group">
+                        <h3>Notifications</h3>
+                        <label class="setting-item">
+                            <input type="checkbox" id="notifications-enabled">
+                            <span>Enable Notifications</span>
+                        </label>
+                        <label class="setting-item">
+                            <input type="checkbox" id="milestone-notifications">
+                            <span>Milestone Notifications</span>
+                        </label>
+                    </div>
+                    <div class="settings-group">
+                        <h3>Appearance</h3>
+                        <label class="setting-item">
+                            <input type="checkbox" id="dark-mode">
+                            <span>Dark Mode</span>
+                        </label>
+                    </div>
+                    <div class="settings-group">
+                        <h3>Data</h3>
+                        <button id="export-data" class="btn btn-secondary">Export Data</button>
+                        <button id="clear-data" class="btn btn-danger">Clear All Data</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Install Prompt -->
+        <div id="install-prompt" class="install-prompt hidden">
+            <div class="install-content">
+                <h3>Install FastTrackr</h3>
+                <p>Install this app on your device for the best experience!</p>
+                <div class="install-buttons">
+                    <button id="install-btn" class="btn btn-primary">Install</button>
+                    <button id="dismiss-install" class="btn btn-secondary">Not Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/app.js"></script>
+    <script src="js/timer.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/notifications.js"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then((registration) => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch((registrationError) => {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+    </script>
+</body>
+</html> 

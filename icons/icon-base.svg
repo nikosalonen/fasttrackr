@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <style>
+      .bg { fill: #2563eb; }
+      .clock { fill: #ffffff; }
+      .accent { fill: #10b981; }
+    </style>
+  </defs>
+  
+  <!-- Background -->
+  <rect class="bg" width="512" height="512" rx="64"/>
+  
+  <!-- Clock face -->
+  <circle class="clock" cx="256" cy="256" r="160" stroke="#2563eb" stroke-width="8" fill="none"/>
+  
+  <!-- Clock hands -->
+  <line class="clock" x1="256" y1="256" x2="256" y2="140" stroke-width="12" stroke-linecap="round"/>
+  <line class="clock" x1="256" y1="256" x2="320" y2="256" stroke-width="8" stroke-linecap="round"/>
+  
+  <!-- Center dot -->
+  <circle class="accent" cx="256" cy="256" r="12"/>
+  
+  <!-- Fast indicator (small arc) -->
+  <path class="accent" d="M 196 116 A 140 140 0 0 1 376 196" stroke-width="16" fill="none" stroke-linecap="round"/>
+  
+  <!-- Clock numbers -->
+  <text class="clock" x="256" y="120" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="bold">12</text>
+  <text class="clock" x="360" y="268" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="bold">3</text>
+  <text class="clock" x="256" y="408" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="bold">6</text>
+  <text class="clock" x="152" y="268" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="bold">9</text>
+</svg> 
