@@ -25,6 +25,7 @@
   "license": "ISC",
   "type": "module",
   "devDependencies": {
+    "@biomejs/biome": "2.0.6",
     "@vitejs/plugin-react": "^4.6.0",
     "pwa-asset-generator": "^8.0.0",
     "serve": "^14.2.1",
