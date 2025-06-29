@@ -151,7 +151,7 @@ export const FastTimerProvider = ({ children }) => {
 
   const getProgress = useCallback(() => {
     if (!targetDuration || targetDuration === 0) return 0
-    return Math.min((elapsedTime / targetDuration) * 100, 100)
+    return (elapsedTime / targetDuration) * 100
   }, [elapsedTime, targetDuration])
 
   const isCompleted = useCallback(() => {

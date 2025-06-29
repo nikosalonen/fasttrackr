@@ -132,7 +132,7 @@ const TimerScreen = () => {
               sx={{
                 fontFamily: 'monospace',
                 fontWeight: 'bold',
-                color: completed ? 'success.main' : 'primary.main',
+                color: progress > 100 ? 'warning.main' : completed ? 'success.main' : 'primary.main',
                 fontSize: { xs: '2.5rem', sm: '3.5rem' },
                 mb: 1,
                 cursor: (isRunning && !completed) ? 'pointer' : 'default',
@@ -173,25 +173,29 @@ const TimerScreen = () => {
                 <Box sx={{ mb: 2 }}>
                   <LinearProgress
                     variant="determinate"
-                    value={progress}
+                    value={Math.min(progress, 100)} // Cap visual progress at 100%
                     sx={{
                       height: 8,
                       borderRadius: 4,
                       backgroundColor: theme.palette.grey[200],
                       '& .MuiLinearProgress-bar': {
-                        backgroundColor: completed ? theme.palette.success.main : theme.palette.primary.main,
+                        backgroundColor: progress > 100 
+                          ? theme.palette.warning.main 
+                          : completed 
+                            ? theme.palette.success.main 
+                            : theme.palette.primary.main,
                       },
                     }}
                   />
                   <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                    {Math.round(progress)}% Complete
+                    {Math.round(progress)}% {progress > 100 ? 'Extended' : 'Complete'}
                   </Typography>
                 </Box>
 
                 {completed && (
                   <Chip
-                    label="🎉 Fast Complete!"
-                    color="success"
+                    label={progress > 100 ? "🔥 Target Exceeded!" : "🎉 Fast Complete!"}
+                    color={progress > 100 ? "warning" : "success"}
                     variant="filled"
                     sx={{ fontSize: '1rem', py: 2, px: 1 }}
                   />
