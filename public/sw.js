@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fasttrackr-v1';
+const CACHE_NAME = 'fasttrackr-v2';
 const urlsToCache = [
   '/',
   '/index.html',

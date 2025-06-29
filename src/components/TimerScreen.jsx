@@ -15,6 +15,11 @@ import {
   Stack,
   Fade,
   useTheme,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  DialogContentText,
 } from '@mui/material'
 import {
   PlayArrow as PlayIcon,
@@ -46,6 +51,7 @@ const TimerScreen = () => {
   const [selectedDuration, setSelectedDuration] = useState(16)
   const [customHours, setCustomHours] = useState('')
   const [showCustomInput, setShowCustomInput] = useState(false)
+  const [showStopConfirmation, setShowStopConfirmation] = useState(false)
 
   const progress = getProgress()
   const completed = isCompleted()
@@ -64,6 +70,19 @@ const TimerScreen = () => {
       return
     }
     startFast(duration)
+  }
+
+  const handleStopClick = () => {
+    setShowStopConfirmation(true)
+  }
+
+  const handleConfirmStop = () => {
+    stopFast()
+    setShowStopConfirmation(false)
+  }
+
+  const handleCancelStop = () => {
+    setShowStopConfirmation(false)
   }
 
   const handleDurationChange = (value) => {
@@ -90,7 +109,7 @@ const TimerScreen = () => {
                 mb: 1,
               }}
             >
-              {formatTime(elapsedTime)}
+{formatTime(elapsedTime)}
             </Typography>
             
             {isRunning && (
@@ -164,10 +183,11 @@ const TimerScreen = () => {
                     color="error"
                     size="large"
                     startIcon={<StopIcon />}
-                    onClick={stopFast}
+                    onClick={handleStopClick}
                   >
-                    Stop Fast
+Stop Fast
                   </Button>
+
                   
                   {isPaused ? (
                     <Button
@@ -260,6 +280,36 @@ const TimerScreen = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Stop Confirmation Dialog */}
+        <Dialog
+          open={showStopConfirmation}
+          onClose={handleCancelStop}
+          aria-labelledby="stop-confirmation-title"
+          aria-describedby="stop-confirmation-description"
+        >
+          <DialogTitle id="stop-confirmation-title">
+            Stop Fast?
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText id="stop-confirmation-description">
+              Are you sure you want to stop your fast? Your progress will be saved to your history.
+            </DialogContentText>
+            {elapsedTime > 0 && (
+              <DialogContentText sx={{ mt: 2, fontWeight: 'medium' }}>
+                Current time: {formatTime(elapsedTime)}
+              </DialogContentText>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCancelStop} color="primary">
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmStop} color="error" variant="contained">
+              Stop Fast
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Stack>
     </Box>
   )

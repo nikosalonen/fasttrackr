@@ -13,7 +13,7 @@ import {
   TrendingUp as TrendingIcon,
   Timer as TimerIcon,
   EmojiEvents as TrophyIcon,
-  LocalFire as StreakIcon,
+  Whatshot as StreakIcon,
 } from '@mui/icons-material'
 
 const StatsScreen = () => {
