@@ -28,6 +28,7 @@ import {
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useNotifications } from "../hooks/useNotifications";
+import SupportDeveloper from "./SupportDeveloper";
 import { updateUtils } from "./UpdateNotification";
 
 const SettingsScreen = () => {
@@ -343,6 +344,9 @@ const SettingsScreen = () => {
 						</Typography>
 					</Stack>
 				</SettingCard>
+
+				{/* Support Developer */}
+				<SupportDeveloper />
 
 				{/* Data Management */}
 				<SettingCard

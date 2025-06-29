@@ -22,9 +22,11 @@ import SettingsScreen from "./components/SettingsScreen";
 import StatsScreen from "./components/StatsScreen";
 import TimerScreen from "./components/TimerScreen";
 import UpdateNotification from "./components/UpdateNotification";
+import WelcomeScreen from "./components/WelcomeScreen";
 import { FastTimerProvider } from "./hooks/useFastTimer";
 import { NotificationProvider } from "./hooks/useNotifications";
 import { useWindowControlsOverlay } from "./hooks/useWindowControlsOverlay";
+import useAdSupport from "./hooks/useAdSupport";
 
 function App() {
 	const [currentTab, setCurrentTab] = useState(0);
@@ -32,6 +34,7 @@ function App() {
 	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 	const { isActive: isWCOActive, getTitleBarAreaCSS } =
 		useWindowControlsOverlay();
+	const { isFirstVisit, markFirstVisitComplete } = useAdSupport();
 
 	useEffect(() => {
 		// Handle URL parameters for deep linking
@@ -97,7 +100,7 @@ function App() {
 					{/* App Header */}
 					<AppBar
 						position="static"
-						elevation={1}
+						elevation={3}
 						sx={{
 							// Window Controls Overlay support
 							WebkitAppRegion: isWCOActive ? "drag" : "initial",
@@ -141,7 +144,7 @@ function App() {
 						sx={{
 							flex: 1,
 							py: 2,
-							pb: isMobile ? 10 : 2, // Extra padding for mobile bottom nav
+							pb: 10, // Extra padding for bottom nav on both mobile and desktop
 						}}
 					>
 						{screens[currentTab].component}
@@ -150,6 +153,7 @@ function App() {
 					{/* Bottom Navigation for Mobile */}
 					{isMobile && (
 						<BottomNavigation
+							elevation={3}
 							value={currentTab}
 							onChange={handleTabChange}
 							sx={{
@@ -175,7 +179,19 @@ function App() {
 
 					{/* Tab Navigation for Desktop */}
 					{!isMobile && (
-						<Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+						<Box
+							sx={{
+								position: "fixed",
+								bottom: 0,
+								left: 0,
+								right: 0,
+								zIndex: 1000,
+								borderTop: 1,
+								borderColor: "divider",
+								backgroundColor: "background.paper",
+								boxShadow: 1,
+							}}
+						>
 							<Container maxWidth="md">
 								<BottomNavigation
 									value={currentTab}
@@ -199,6 +215,9 @@ function App() {
 
 					{/* Service Worker Update Notifications */}
 					<UpdateNotification />
+
+					{/* Welcome Screen for First-Time Users */}
+					<WelcomeScreen open={isFirstVisit} onClose={markFirstVisitComplete} />
 				</Box>
 			</NotificationProvider>
 		</FastTimerProvider>
