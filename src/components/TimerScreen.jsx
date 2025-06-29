@@ -43,9 +43,16 @@ const TimerScreen = () => {
 
   const { showFastCompleteNotification } = useNotifications()
 
-  const [selectedDuration, setSelectedDuration] = useState(16)
-  const [customHours, setCustomHours] = useState('')
-  const [showCustomInput, setShowCustomInput] = useState(false)
+  const [selectedDuration, setSelectedDuration] = useState(() => {
+    const saved = localStorage.getItem('selectedDuration')
+    return saved ? parseInt(saved) : 16
+  })
+  const [customHours, setCustomHours] = useState(() => {
+    return localStorage.getItem('customHours') || ''
+  })
+  const [showCustomInput, setShowCustomInput] = useState(() => {
+    return localStorage.getItem('showCustomInput') === 'true'
+  })
   const [showStopConfirmation, setShowStopConfirmation] = useState(false)
   const [showRemainingTime, setShowRemainingTime] = useState(false)
 
@@ -82,8 +89,15 @@ const TimerScreen = () => {
   }
 
   const handleDurationChange = (value) => {
-    setSelectedDuration(value)
-    setShowCustomInput(value === 'custom')
+    if (value === 'custom') {
+      setShowCustomInput(true)
+      localStorage.setItem('showCustomInput', 'true')
+    } else {
+      setSelectedDuration(value)
+      setShowCustomInput(false)
+      localStorage.setItem('selectedDuration', value.toString())
+      localStorage.setItem('showCustomInput', 'false')
+    }
   }
 
   const handleTimeDisplayToggle = () => {
@@ -333,7 +347,10 @@ const TimerScreen = () => {
                         label="Custom Hours"
                         type="number"
                         value={customHours}
-                        onChange={(e) => setCustomHours(e.target.value)}
+                        onChange={(e) => {
+                          setCustomHours(e.target.value)
+                          localStorage.setItem('customHours', e.target.value)
+                        }}
                         inputProps={{ min: 1, max: 168 }}
                         helperText="Enter hours (1-168)"
                         fullWidth
