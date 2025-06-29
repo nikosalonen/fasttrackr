@@ -24,8 +24,11 @@ import {
   Upload as ImportIcon,
   Delete as DeleteIcon,
   Info as InfoIcon,
+  Refresh as RefreshIcon,
+  Update as UpdateIcon,
 } from '@mui/icons-material'
 import { useNotifications } from '../hooks/useNotifications'
+import { updateUtils } from './UpdateNotification'
 
 const SettingsScreen = () => {
   const {
@@ -209,6 +212,30 @@ const SettingsScreen = () => {
     }, 1500)
   }
 
+  const handleCheckForUpdates = async () => {
+    try {
+      showSnackbar('Checking for updates...')
+      await updateUtils.checkForUpdates()
+      // The UpdateNotification component will handle showing update notifications
+      setTimeout(() => {
+        showSnackbar('Update check completed')
+      }, 2000)
+    } catch (error) {
+      console.error('Update check failed:', error)
+      showSnackbar('Failed to check for updates')
+    }
+  }
+
+  const handleForceRefresh = async () => {
+    try {
+      showSnackbar('Force refreshing app...')
+      await updateUtils.forceRefresh()
+    } catch (error) {
+      console.error('Force refresh failed:', error)
+      showSnackbar('Force refresh failed')
+    }
+  }
+
   const SettingCard = ({ title, icon, children }) => (
     <Card elevation={1}>
       <CardContent>
@@ -330,6 +357,34 @@ const SettingsScreen = () => {
           </Stack>
         </SettingCard>
 
+        {/* App Management */}
+        <SettingCard title="App Management" icon={<UpdateIcon color="primary" />}>
+          <Stack spacing={2}>
+            <Button
+              variant="outlined"
+              startIcon={<UpdateIcon />}
+              onClick={handleCheckForUpdates}
+              fullWidth
+            >
+              Check for Updates
+            </Button>
+            
+            <Button
+              variant="outlined"
+              color="warning"
+              startIcon={<RefreshIcon />}
+              onClick={handleForceRefresh}
+              fullWidth
+            >
+              Force Refresh App
+            </Button>
+            
+            <Typography variant="body2" color="text.secondary">
+              Check for updates manually or force refresh to clear all cached data and reload the latest version.
+            </Typography>
+          </Stack>
+        </SettingCard>
+
         {/* App Info */}
         <Card elevation={1}>
           <CardContent>
@@ -341,7 +396,7 @@ const SettingsScreen = () => {
               Install it on your device for the best experience!
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Version: 1.0.0
+              Version: 1.0.3
               <br />
               Built with Material UI and React
             </Typography>

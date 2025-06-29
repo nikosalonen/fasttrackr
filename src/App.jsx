@@ -22,6 +22,7 @@ import HistoryScreen from './components/HistoryScreen'
 import StatsScreen from './components/StatsScreen'
 import SettingsScreen from './components/SettingsScreen'
 import InstallPrompt from './components/InstallPrompt'
+import UpdateNotification from './components/UpdateNotification'
 import { FastTimerProvider } from './hooks/useFastTimer'
 import { NotificationProvider } from './hooks/useNotifications'
 
@@ -159,6 +160,9 @@ function App() {
 
           {/* PWA Install Prompt */}
           <InstallPrompt />
+
+          {/* Service Worker Update Notifications */}
+          <UpdateNotification />
         </Box>
       </NotificationProvider>
     </FastTimerProvider>
