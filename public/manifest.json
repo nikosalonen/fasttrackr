@@ -1,7 +1,7 @@
 {
-  "name": "FastTrackr - Fasting Tracker",
+  "name": "FastTrackr - Intermittent Fasting Timer",
   "short_name": "FastTrackr",
-  "description": "Track your fasting journey with ease. A simple and effective intermittent fasting timer.",
+  "description": "Simple and effective 16:8 intermittent fasting tracker. Monitor your fasting progress with beautiful circular timers and detailed history.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -9,7 +9,7 @@
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "en",
-  "categories": ["health", "fitness", "lifestyle"],
+  "categories": ["health", "fitness", "lifestyle", "medical"],
   "icons": [
     {
       "src": "icons/manifest-icon-192.maskable.png",
@@ -38,9 +38,9 @@
   ],
   "shortcuts": [
     {
-      "name": "Start Fast",
+      "name": "Start 16h Fast",
       "short_name": "Start",
-      "description": "Quickly start a new fast",
+      "description": "Quickly start a new 16-hour intermittent fast",
       "url": "/?action=start",
       "icons": [
         {
