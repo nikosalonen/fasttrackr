@@ -1,4 +1,5 @@
 import {
+	Close as CloseIcon,
 	Coffee as CoffeeIcon,
 	Favorite as FavoriteIcon,
 	PlayCircleFilled as PlayIcon,
@@ -12,6 +13,7 @@ import {
 	Dialog,
 	DialogContent,
 	DialogTitle,
+	IconButton,
 	Stack,
 	Typography,
 	useTheme,
@@ -21,18 +23,25 @@ import useAdSupport from "../hooks/useAdSupport";
 
 const SupportDeveloper = () => {
 	const theme = useTheme();
-	const { 
-		supportCount, 
-		isShowingAd, 
-		showSupportAd, 
+	const {
+		supportCount,
+		isShowingAd,
+		showSupportAd,
 		getSupportStats,
-		hasEverSupported 
+		hasEverSupported,
+		isSupportDismissed,
+		dismissSupport,
 	} = useAdSupport();
-	
+
 	const [showThankYou, setShowThankYou] = useState(false);
 	const [thankYouMessage, setThankYouMessage] = useState("");
 
 	const stats = getSupportStats();
+
+	// Don't render if dismissed
+	if (isSupportDismissed) {
+		return null;
+	}
 
 	const handleSupportClick = async () => {
 		try {
@@ -40,7 +49,7 @@ const SupportDeveloper = () => {
 			if (result.success) {
 				setThankYouMessage(result.message);
 				setShowThankYou(true);
-				
+
 				// Auto-close thank you dialog after 3 seconds
 				setTimeout(() => {
 					setShowThankYou(false);
@@ -57,32 +66,60 @@ const SupportDeveloper = () => {
 				<CardContent>
 					<Stack spacing={2}>
 						{/* Header */}
-						<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-							<CoffeeIcon sx={{ color: "orange.main", fontSize: 24 }} />
-							<Typography variant="h6" fontWeight="600">
-								Support Development
-							</Typography>
+						<Box
+							sx={{
+								display: "flex",
+								alignItems: "center",
+								justifyContent: "space-between",
+							}}
+						>
+							<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+								<CoffeeIcon sx={{ color: "orange.main", fontSize: 24 }} />
+								<Typography variant="subtitle1" fontWeight="600">
+									Support Development
+								</Typography>
+							</Box>
+							<IconButton
+								onClick={dismissSupport}
+								size="small"
+								sx={{ color: "text.secondary" }}
+								aria-label="Dismiss support section"
+							>
+								<CloseIcon fontSize="small" />
+							</IconButton>
 						</Box>
 
 						{/* Description */}
-						<Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
-							FastTrackr is completely free and ad-free. If you'd like to support continued 
-							development, you can voluntarily view an advertisement.
+						<Typography
+							variant="body2"
+							color="text.secondary"
+							sx={{ lineHeight: 1.6 }}
+						>
+							FastTrackr is completely free and ad-free. If you'd like to
+							support continued development, you can voluntarily view an
+							advertisement.
 						</Typography>
 
 						{/* Support Stats */}
 						{hasEverSupported && (
-							<Box sx={{ 
-								p: 2, 
-								bgcolor: "success.50", 
-								borderRadius: 1, 
-								border: `1px solid ${theme.palette.success.main}20` 
-							}}>
-								<Typography variant="body2" color="success.dark" fontWeight="600">
+							<Box
+								sx={{
+									p: 2,
+									bgcolor: "success.50",
+									borderRadius: 1,
+									border: `1px solid ${theme.palette.success.main}20`,
+								}}
+							>
+								<Typography
+									variant="body2"
+									color="success.dark"
+									fontWeight="600"
+								>
 									🎉 Thank you for your support!
 								</Typography>
 								<Typography variant="caption" color="success.dark">
-									You've supported {stats.totalSupports} time{stats.totalSupports !== 1 ? 's' : ''} total
+									You've supported {stats.totalSupports} time
+									{stats.totalSupports !== 1 ? "s" : ""} total
 									{stats.thisMonth > 0 && ` (${stats.thisMonth} this month)`}
 								</Typography>
 							</Box>
@@ -93,7 +130,9 @@ const SupportDeveloper = () => {
 							variant="contained"
 							onClick={handleSupportClick}
 							disabled={isShowingAd}
-							startIcon={isShowingAd ? <CircularProgress size={20} /> : <CoffeeIcon />}
+							startIcon={
+								isShowingAd ? <CircularProgress size={20} /> : <CoffeeIcon />
+							}
 							sx={{
 								borderRadius: 2,
 								textTransform: "none",
@@ -108,8 +147,14 @@ const SupportDeveloper = () => {
 						</Button>
 
 						{/* Info Note */}
-						<Typography variant="caption" color="text.secondary" sx={{ fontStyle: "italic" }}>
+						<Typography
+							variant="caption"
+							color="text.secondary"
+							sx={{ fontStyle: "italic" }}
+						>
 							💡 No pressure, no reminders - just click when you want to help!
+							You can also dismiss this section with the ✕ button above and it
+							won't show again.
 						</Typography>
 					</Stack>
 				</CardContent>
@@ -128,7 +173,14 @@ const SupportDeveloper = () => {
 				}}
 			>
 				<DialogTitle sx={{ textAlign: "center" }}>
-					<Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}>
+					<Box
+						sx={{
+							display: "flex",
+							alignItems: "center",
+							justifyContent: "center",
+							gap: 1,
+						}}
+					>
 						<PlayIcon sx={{ fontSize: 28, color: "primary.main" }} />
 						<Typography variant="h6" fontWeight="600">
 							Loading Advertisement
@@ -175,4 +227,4 @@ const SupportDeveloper = () => {
 	);
 };
 
-export default SupportDeveloper; 
+export default SupportDeveloper;

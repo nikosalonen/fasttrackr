@@ -35,7 +35,7 @@ const WelcomeScreen = ({ open, onClose }) => {
 				},
 			}}
 		>
-			<DialogTitle sx={{ textAlign: "center", pb: 1 }}>
+			<DialogTitle component="div" sx={{ textAlign: "center", pb: 1 }}>
 				<Box
 					sx={{
 						display: "flex",
@@ -48,7 +48,7 @@ const WelcomeScreen = ({ open, onClose }) => {
 					<TimerIcon sx={{ fontSize: 32, color: "primary.main" }} />
 					<Typography
 						variant="h4"
-						component="span"
+						component="h2"
 						fontWeight="bold"
 						color="primary.main"
 					>
@@ -57,6 +57,7 @@ const WelcomeScreen = ({ open, onClose }) => {
 				</Box>
 				<Typography
 					variant="subtitle1"
+					component="p"
 					color="text.secondary"
 					fontWeight="normal"
 				>
@@ -97,7 +98,7 @@ const WelcomeScreen = ({ open, onClose }) => {
 					<Box>
 						<Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
 							<FavoriteIcon sx={{ color: "error.main", fontSize: 20 }} />
-							<Typography variant="h6" fontWeight="600">
+							<Typography variant="h6" component="h3" fontWeight="600">
 								Support Development (Optional)
 							</Typography>
 						</Box>
@@ -136,7 +137,12 @@ const WelcomeScreen = ({ open, onClose }) => {
 
 					{/* Features Overview */}
 					<Box>
-						<Typography variant="h6" fontWeight="600" sx={{ mb: 2 }}>
+						<Typography
+							variant="h6"
+							component="h3"
+							fontWeight="600"
+							sx={{ mb: 2 }}
+						>
 							What you can do with FastTrackr:
 						</Typography>
 						<Stack spacing={1}>

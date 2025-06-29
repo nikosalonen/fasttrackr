@@ -144,7 +144,7 @@ function App() {
 						sx={{
 							flex: 1,
 							py: 2,
-							pb: isMobile ? 10 : 2, // Extra padding for mobile bottom nav
+							pb: 10, // Extra padding for bottom nav on both mobile and desktop
 						}}
 					>
 						{screens[currentTab].component}
@@ -178,7 +178,19 @@ function App() {
 
 					{/* Tab Navigation for Desktop */}
 					{!isMobile && (
-						<Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+						<Box
+							sx={{
+								position: "fixed",
+								bottom: 0,
+								left: 0,
+								right: 0,
+								zIndex: 1000,
+								borderTop: 1,
+								borderColor: "divider",
+								backgroundColor: "background.paper",
+								boxShadow: 1,
+							}}
+						>
 							<Container maxWidth="md">
 								<BottomNavigation
 									value={currentTab}

@@ -104,7 +104,7 @@
 
 ### Voluntary Ad Support
 - [x] **Welcome Screen Component** - First-time user greeting explaining voluntary ad support
-- [x] **Support Developer Button** - Subtle "Support Dev" button in settings
+- [x] **Support Developer Button** - Dismissable "Support Dev" section in settings with close button
 - [x] **Ad Support Counter** - Track and display how many times user has helped
 - [ ] **Ad Integration Setup** - Integrate with ad network (Google AdMob, etc.)
 - [x] **Support Analytics** - Track voluntary ad engagement (privacy-respecting)

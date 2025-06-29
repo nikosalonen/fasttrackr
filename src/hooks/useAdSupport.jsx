@@ -2,29 +2,40 @@ import { useCallback, useEffect, useState } from "react";
 
 const AD_SUPPORT_KEY = "fasttrackr_ad_support";
 const FIRST_VISIT_KEY = "fasttrackr_first_visit";
+const SUPPORT_DISMISSED_KEY = "fasttrackr_support_dismissed";
 
 const useAdSupport = () => {
-	const [supportCount, setSupportCount] = useState(0);
-	const [isFirstVisit, setIsFirstVisit] = useState(true);
-	const [isShowingAd, setIsShowingAd] = useState(false);
-
-	// Load data from localStorage on mount
-	useEffect(() => {
+	// Initialize states more carefully to prevent render issues
+	const [supportCount, setSupportCount] = useState(() => {
 		const storedSupport = localStorage.getItem(AD_SUPPORT_KEY);
-		const storedFirstVisit = localStorage.getItem(FIRST_VISIT_KEY);
-
 		if (storedSupport) {
 			try {
 				const data = JSON.parse(storedSupport);
-				setSupportCount(data.count || 0);
+				return data.count || 0;
 			} catch (error) {
 				console.error("Error parsing ad support data:", error);
-				setSupportCount(0);
+				return 0;
 			}
 		}
+		return 0;
+	});
 
-		// Check if this is the first visit
-		setIsFirstVisit(storedFirstVisit !== "false");
+	const [isFirstVisit, setIsFirstVisit] = useState(() => {
+		const storedFirstVisit = localStorage.getItem(FIRST_VISIT_KEY);
+		return storedFirstVisit !== "false";
+	});
+
+	const [isShowingAd, setIsShowingAd] = useState(false);
+
+	const [isSupportDismissed, setIsSupportDismissed] = useState(() => {
+		const storedDismissed = localStorage.getItem(SUPPORT_DISMISSED_KEY);
+		return storedDismissed === "true";
+	});
+
+	// Load any remaining data from localStorage on mount (if needed)
+	useEffect(() => {
+		// This effect is now just for any additional initialization if needed
+		// Most state is initialized lazily above to prevent render issues
 	}, []);
 
 	// Mark that the user has completed their first visit
@@ -36,7 +47,7 @@ const useAdSupport = () => {
 	// Show a voluntary ad
 	const showSupportAd = useCallback(() => {
 		setIsShowingAd(true);
-		
+
 		// Simulate ad loading/showing (replace with actual ad network integration)
 		return new Promise((resolve) => {
 			// This would be replaced with actual ad network code
@@ -45,17 +56,17 @@ const useAdSupport = () => {
 				// Increment support count
 				const newCount = supportCount + 1;
 				setSupportCount(newCount);
-				
+
 				// Get current month total directly to avoid dependency issues
 				const getCurrentMonthTotal = () => {
 					const storedSupport = localStorage.getItem(AD_SUPPORT_KEY);
 					if (!storedSupport) return 0;
-					
+
 					try {
 						const data = JSON.parse(storedSupport);
 						const lastSupported = new Date(data.lastSupported);
 						const currentMonth = new Date();
-						
+
 						if (
 							lastSupported.getMonth() === currentMonth.getMonth() &&
 							lastSupported.getFullYear() === currentMonth.getFullYear()
@@ -67,17 +78,20 @@ const useAdSupport = () => {
 						return 0;
 					}
 				};
-				
+
 				// Save to localStorage
 				const supportData = {
 					count: newCount,
 					lastSupported: new Date().toISOString(),
 					totalThisMonth: getCurrentMonthTotal() + 1,
 				};
-				
+
 				localStorage.setItem(AD_SUPPORT_KEY, JSON.stringify(supportData));
 				setIsShowingAd(false);
-				resolve({ success: true, message: "Thank you for supporting FastTrackr! 🙏" });
+				resolve({
+					success: true,
+					message: "Thank you for supporting FastTrackr! 🙏",
+				});
 			}, 2000); // Simulate 2-second ad
 		});
 	}, [supportCount]);
@@ -91,7 +105,7 @@ const useAdSupport = () => {
 			const data = JSON.parse(storedSupport);
 			const lastSupported = new Date(data.lastSupported);
 			const currentMonth = new Date();
-			
+
 			// Check if last support was in current month
 			if (
 				lastSupported.getMonth() === currentMonth.getMonth() &&
@@ -132,10 +146,18 @@ const useAdSupport = () => {
 		}
 	}, [getTotalThisMonth]);
 
+	// Dismiss the support section permanently
+	const dismissSupport = useCallback(() => {
+		localStorage.setItem(SUPPORT_DISMISSED_KEY, "true");
+		setIsSupportDismissed(true);
+	}, []);
+
 	// Reset support data (for testing or if user wants to clear)
 	const resetSupportData = useCallback(() => {
 		localStorage.removeItem(AD_SUPPORT_KEY);
+		localStorage.removeItem(SUPPORT_DISMISSED_KEY);
 		setSupportCount(0);
+		setIsSupportDismissed(false);
 	}, []);
 
 	// Check if user has ever supported
@@ -147,10 +169,12 @@ const useAdSupport = () => {
 		isFirstVisit,
 		isShowingAd,
 		hasEverSupported,
+		isSupportDismissed,
 
 		// Actions
 		markFirstVisitComplete,
 		showSupportAd,
+		dismissSupport,
 		resetSupportData,
 
 		// Getters
@@ -159,4 +183,4 @@ const useAdSupport = () => {
 	};
 };
 
-export default useAdSupport; 
+export default useAdSupport;
