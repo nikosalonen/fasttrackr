@@ -191,12 +191,6 @@ We use [Conventional Commits](https://www.conventionalcommits.org/):
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
-
-- **Material-UI Team** - For the excellent component library
-- **Vite Team** - For the blazing-fast build tool
-- **React Team** - For the amazing framework
-- **IF Community** - For inspiration and feedback on intermittent fasting practices
 
 ## 📞 Support
 
