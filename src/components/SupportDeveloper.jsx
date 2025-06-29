@@ -61,10 +61,10 @@ const SupportDeveloper = () => {
 						sx={{ lineHeight: 1.6 }}
 					>
 						FastTrackr is completely free and ad-free. If you'd like to support
-						continued development, you can buy me a coffee!
+						continued development, you can buy me a beer!
 					</Typography>
 
-					{/* Buy Me a Coffee Button */}
+					{/* Buy Me a Beer Button */}
 					<Box sx={{ display: "flex", justifyContent: "center" }}>
 						<a
 							href="https://www.buymeacoffee.com/nikosalonen"
@@ -73,7 +73,7 @@ const SupportDeveloper = () => {
 						>
 							<img
 								src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png"
-								alt="Buy Me A Coffee"
+								alt="Buy Me A Beer"
 								style={{ height: "60px", width: "217px" }}
 							/>
 						</a>
