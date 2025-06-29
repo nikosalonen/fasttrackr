@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import App from './App.jsx'
+import './styles/window-controls-overlay.css'
 
 // Theme Provider Component
 const DynamicThemeProvider = ({ children }) => {

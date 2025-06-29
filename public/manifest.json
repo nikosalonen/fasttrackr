@@ -1,10 +1,10 @@
 {
-
   "name": "FastTrackr - Intermittent Fasting Timer",
   "short_name": "FastTrackr",
   "description": "Simple and effective intermittent fasting tracker. Monitor your fasting progress with beautiful circular timers and detailed history.",
   "start_url": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
   "background_color": "#ffffff",
   "theme_color": "#2563eb",
   "orientation": "portrait-primary",

@@ -1,0 +1,79 @@
+/* Window Controls Overlay Styles */
+
+/* Check if Window Controls Overlay is supported */
+@supports (top: env(titlebar-area-height)) {
+  /* App container adjustments when WCO is active */
+  .wco-enabled {
+    padding-top: env(titlebar-area-height, 0);
+  }
+
+  /* Title bar area styling */
+  .title-bar {
+    position: fixed;
+    top: 0;
+    left: env(titlebar-area-x, 0);
+    width: env(titlebar-area-width, 100%);
+    height: env(titlebar-area-height, 40px);
+    background: var(--app-bg-color, #2563eb);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    -webkit-app-region: drag;
+    user-select: none;
+  }
+
+  /* Make interactive elements non-draggable */
+  .title-bar * {
+    -webkit-app-region: no-drag;
+  }
+
+  /* Ensure content doesn't overlap with title bar */
+  .main-content {
+    margin-top: env(titlebar-area-height, 0);
+  }
+
+  /* Handle safe areas for different platforms */
+  .app-container {
+    padding-left: max(env(titlebar-area-x, 0), env(safe-area-inset-left, 0));
+    padding-right: max(
+      calc(100vw - env(titlebar-area-x, 0) - env(titlebar-area-width, 100vw)),
+      env(safe-area-inset-right, 0)
+    );
+  }
+}
+
+/* Media query for desktop/tablet where WCO is most useful */
+@media (min-width: 768px) and (display-mode: window-controls-overlay) {
+  /* Additional desktop-specific WCO styles */
+  .desktop-wco {
+    /* Custom styles for desktop WCO mode */
+  }
+  
+  /* Hide mobile-specific elements in WCO mode */
+  .mobile-only {
+    display: none;
+  }
+}
+
+/* Fallback for browsers that don't support WCO */
+@supports not (top: env(titlebar-area-height)) {
+  .wco-fallback {
+    /* Standard app bar styles */
+  }
+}
+
+/* CSS custom properties for theming */
+:root {
+  --titlebar-bg: #2563eb;
+  --titlebar-text: #ffffff;
+  --titlebar-height: env(titlebar-area-height, 40px);
+}
+
+/* Dark mode support for title bar */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --titlebar-bg: #1e40af;
+    --titlebar-text: #ffffff;
+  }
+} 

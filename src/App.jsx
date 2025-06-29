@@ -25,11 +25,13 @@ import InstallPrompt from './components/InstallPrompt'
 import UpdateNotification from './components/UpdateNotification'
 import { FastTimerProvider } from './hooks/useFastTimer'
 import { NotificationProvider } from './hooks/useNotifications'
+import { useWindowControlsOverlay } from './hooks/useWindowControlsOverlay'
 
 function App() {
   const [currentTab, setCurrentTab] = useState(0)
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+  const { isActive: isWCOActive, getTitleBarAreaCSS } = useWindowControlsOverlay()
 
   useEffect(() => {
     // Handle URL parameters for deep linking
@@ -79,9 +81,32 @@ function App() {
   return (
     <FastTimerProvider>
       <NotificationProvider>
-        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            minHeight: '100vh',
+            // Apply WCO CSS variables
+            ...getTitleBarAreaCSS()
+          }}
+        >
           {/* App Header */}
-          <AppBar position="static" elevation={1}>
+          <AppBar 
+            position="static" 
+            elevation={1}
+            sx={{
+              // Window Controls Overlay support
+              WebkitAppRegion: isWCOActive ? 'drag' : 'initial',
+              '& .MuiToolbar-root': {
+                WebkitAppRegion: 'no-drag',
+                paddingLeft: isWCOActive ? 'env(titlebar-area-x, 16px)' : '16px',
+                paddingRight: isWCOActive ? 'calc(env(titlebar-area-width, 100vw) - env(titlebar-area-x, 0px) - 100vw + 100vw - 16px)' : '16px',
+                minHeight: isWCOActive ? 'env(titlebar-area-height, 64px)' : '64px',
+                display: 'flex',
+                alignItems: 'center',
+              }
+            }}
+          >
             <Toolbar>
               <Typography
                 variant="h6"
@@ -92,6 +117,7 @@ function App() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 1,
+                  WebkitAppRegion: 'no-drag',
                 }}
               >
                 ⏰ FastTrackr
