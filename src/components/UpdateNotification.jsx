@@ -6,7 +6,6 @@ import {
 } from "@mui/icons-material";
 import {
 	Alert,
-	Box,
 	Button,
 	Dialog,
 	DialogActions,
@@ -18,51 +17,83 @@ import {
 	Stack,
 	Typography,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
-import swManager from "../utils/serviceWorkerManager";
+import { useEffect, useState } from "react";
+import {
+	checkForUpdates,
+	updateServiceWorker,
+} from "../utils/serviceWorkerManager.js";
+
+// Standalone update utility functions
+export const updateUtils = {
+	checkForUpdates: async () => {
+		try {
+			await checkForUpdates();
+			console.log("Manual update check completed");
+		} catch (error) {
+			console.error("Manual update check failed:", error);
+		}
+	},
+	forceUpdate: async () => {
+		try {
+			window.location.reload();
+		} catch (error) {
+			console.error("Force update failed:", error);
+		}
+	},
+};
 
 const UpdateNotification = () => {
 	const [updateAvailable, setUpdateAvailable] = useState(false);
 	const [showForceUpdateDialog, setShowForceUpdateDialog] = useState(false);
 	const [isUpdating, setIsUpdating] = useState(false);
-	const [cacheVersion, setCacheVersion] = useState(null);
+	const [updateMessage, setUpdateMessage] = useState("");
 
 	useEffect(() => {
-		// Set up service worker update listeners
-		swManager.onUpdateAvailable(() => {
+		// Listen for service worker update events
+		const handleUpdateAvailable = (_event) => {
 			console.log("Update available notification triggered");
 			setUpdateAvailable(true);
-		});
+			setUpdateMessage(
+				"New version available! Tap Update to get the latest features.",
+			);
+		};
 
-		swManager.onUpdateInstalled(() => {
-			console.log("Update installed notification triggered");
-			// Auto-hide the notification after successful update
-			setUpdateAvailable(false);
-			setIsUpdating(false);
-		});
+		const handleOfflineReady = (_event) => {
+			console.log("App ready for offline use");
+			setUpdateMessage("App is now ready for offline use!");
+			setUpdateAvailable(true);
+			// Auto-hide after 5 seconds
+			setTimeout(() => setUpdateAvailable(false), 5000);
+		};
 
-		// Get current cache version
-		swManager.getCacheVersion().then((version) => {
-			setCacheVersion(version);
-		});
+		const handleUpdateFound = (_event) => {
+			console.log("Update found, downloading...");
+			setUpdateMessage("Downloading update...");
+			setUpdateAvailable(true);
+		};
 
-		// Initialize service worker
-		swManager.init().catch((error) => {
-			console.error("Service worker initialization failed:", error);
-		});
+		// Add event listeners
+		window.addEventListener("sw-update-available", handleUpdateAvailable);
+		window.addEventListener("sw-offline-ready", handleOfflineReady);
+		window.addEventListener("sw-update-found", handleUpdateFound);
+
+		// Cleanup event listeners
+		return () => {
+			window.removeEventListener("sw-update-available", handleUpdateAvailable);
+			window.removeEventListener("sw-offline-ready", handleOfflineReady);
+			window.removeEventListener("sw-update-found", handleUpdateFound);
+		};
 	}, []);
 
 	const handleApplyUpdate = async () => {
 		setIsUpdating(true);
 		try {
-			const success = await swManager.applyUpdate();
-			if (!success) {
-				// No pending update, force refresh instead
-				await swManager.forceRefresh();
-			}
+			await updateServiceWorker();
+			// The page will reload automatically after the update
 		} catch (error) {
 			console.error("Update application failed:", error);
 			setIsUpdating(false);
+			setUpdateMessage("Update failed. Please try again.");
 		}
 	};
 
@@ -70,27 +101,35 @@ const UpdateNotification = () => {
 		setIsUpdating(true);
 		setShowForceUpdateDialog(false);
 		try {
-			await swManager.forceRefresh();
+			// Force reload the page
+			window.location.reload();
 		} catch (error) {
 			console.error("Force update failed:", error);
 			setIsUpdating(false);
 		}
 	};
 
-	const handleCheckForUpdates = async () => {
+	const _handleCheckForUpdates = async () => {
 		setIsUpdating(true);
 		try {
-			await swManager.checkForUpdates();
+			await checkForUpdates();
 			// Give it a moment to detect updates
 			setTimeout(() => {
 				if (!updateAvailable) {
-					// No updates found, show notification
-					setIsUpdating(false);
+					setUpdateMessage("No updates available.");
+					setUpdateAvailable(true);
+					// Auto-hide after 3 seconds
+					setTimeout(() => setUpdateAvailable(false), 3000);
 				}
+				setIsUpdating(false);
 			}, 2000);
 		} catch (error) {
 			console.error("Check for updates failed:", error);
 			setIsUpdating(false);
+			setUpdateMessage("Failed to check for updates.");
+			setUpdateAvailable(true);
+			// Auto-hide after 3 seconds
+			setTimeout(() => setUpdateAvailable(false), 3000);
 		}
 	};
 
@@ -149,7 +188,8 @@ const UpdateNotification = () => {
 					}
 				>
 					<Typography variant="body2">
-						🎉 New version available! Tap Update to get the latest features.
+						{updateMessage ||
+							"🎉 New version available! Tap Update to get the latest features."}
 					</Typography>
 				</Alert>
 			</Snackbar>
@@ -168,15 +208,6 @@ const UpdateNotification = () => {
 						latest version. Your fasting data will be preserved as it's stored
 						locally.
 					</DialogContentText>
-					{cacheVersion && (
-						<Box
-							sx={{ mt: 2, p: 2, backgroundColor: "grey.100", borderRadius: 1 }}
-						>
-							<Typography variant="caption" color="text.secondary">
-								Current cache version: {cacheVersion}
-							</Typography>
-						</Box>
-					)}
 				</DialogContent>
 				<DialogActions>
 					<Button onClick={() => setShowForceUpdateDialog(false)}>
@@ -194,17 +225,6 @@ const UpdateNotification = () => {
 			</Dialog>
 		</>
 	);
-};
-
-// Export functions for manual update checking
-export const updateUtils = {
-	checkForUpdates: () => swManager.checkForUpdates(),
-	forceRefresh: () => swManager.forceRefresh(),
-	showForceUpdateDialog: () => {
-		// This would need to be connected to the component state
-		// For now, just trigger force refresh directly
-		swManager.forceRefresh();
-	},
 };
 
 export default UpdateNotification;

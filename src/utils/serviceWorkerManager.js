@@ -1,174 +1,170 @@
-// Service Worker Update Manager
-class ServiceWorkerManager {
-	constructor() {
-		this.registration = null;
-		this.updateAvailable = false;
-		this.callbacks = {
-			onUpdateAvailable: [],
-			onUpdateInstalled: [],
-		};
-	}
+import { Workbox } from "workbox-window";
 
-	// Initialize service worker with update handling
-	async init() {
-		if ("serviceWorker" in navigator) {
-			try {
-				this.registration = await navigator.serviceWorker.register("/sw.js", {
-					scope: "/",
-				});
+let wb = null;
+let swRegistration = null;
 
-				console.log("Service Worker registered successfully");
+export const registerServiceWorker = async () => {
+	if ("serviceWorker" in navigator) {
+		try {
+			wb = new Workbox("/sw.js");
 
-				// Check for updates immediately
-				await this.checkForUpdates();
-
-				// Set up update listeners
-				this.setupUpdateListeners();
-
-				// Listen for messages from service worker
-				navigator.serviceWorker.addEventListener(
-					"message",
-					this.handleSWMessage.bind(this),
+			wb.addEventListener("waiting", (_event) => {
+				console.log("Service Worker: New version waiting");
+				window.dispatchEvent(
+					new CustomEvent("sw-update-available", {
+						detail: { registration: swRegistration },
+					}),
 				);
+			});
 
-				return this.registration;
-			} catch (error) {
-				console.error("Service Worker registration failed:", error);
-				throw error;
-			}
-		} else {
-			throw new Error("Service Worker not supported");
-		}
-	}
+			wb.addEventListener("externalwaiting", (_event) => {
+				console.log("Service Worker: External waiting");
+				window.dispatchEvent(
+					new CustomEvent("sw-update-available", {
+						detail: { registration: swRegistration },
+					}),
+				);
+			});
 
-	// Set up listeners for service worker updates
-	setupUpdateListeners() {
-		if (!this.registration) return;
-
-		// Listen for new service worker installing
-		this.registration.addEventListener("updatefound", () => {
-			const newWorker = this.registration.installing;
-			console.log("New service worker found, installing...");
-
-			newWorker.addEventListener("statechange", () => {
-				if (newWorker.state === "installed") {
-					if (navigator.serviceWorker.controller) {
-						// New update available
-						console.log("New service worker installed, update available");
-						this.updateAvailable = true;
-						this.notifyUpdateAvailable();
-					} else {
-						// First time install
-						console.log("Service worker installed for first time");
-						this.notifyUpdateInstalled();
-					}
+			wb.addEventListener("activated", (event) => {
+				if (!event.isUpdate) {
+					console.log("Service Worker: Ready for offline use");
+					window.dispatchEvent(
+						new CustomEvent("sw-offline-ready", {
+							detail: { registration: swRegistration },
+						}),
+					);
 				}
 			});
-		});
 
-		// Listen for controlling service worker change
-		navigator.serviceWorker.addEventListener("controllerchange", () => {
-			console.log("Service worker controller changed, reloading...");
-			window.location.reload();
-		});
-	}
-
-	// Handle messages from service worker
-	handleSWMessage(event) {
-		const { data } = event;
-
-		if (data.type === "SW_UPDATED") {
-			console.log("Service worker updated:", data.message);
-			this.notifyUpdateInstalled();
-		}
-	}
-
-	// Check for service worker updates
-	async checkForUpdates() {
-		if (this.registration) {
-			try {
-				await this.registration.update();
-				console.log("Service worker update check completed");
-			} catch (error) {
-				console.error("Service worker update check failed:", error);
-			}
-		}
-	}
-
-	// Force apply pending updates
-	async applyUpdate() {
-		if (this.registration && this.registration.waiting) {
-			// Tell the waiting service worker to skip waiting
-			this.registration.waiting.postMessage({ type: "SKIP_WAITING" });
-			return true;
-		}
-		return false;
-	}
-
-	// Force refresh - clear caches and reload
-	async forceRefresh() {
-		try {
-			// Clear all caches
-			if ("caches" in window) {
-				const cacheNames = await caches.keys();
-				await Promise.all(
-					cacheNames.map((cacheName) => caches.delete(cacheName)),
-				);
-				console.log("All caches cleared");
-			}
-
-			// Unregister service worker
-			if (this.registration) {
-				await this.registration.unregister();
-				console.log("Service worker unregistered");
-			}
-
-			// Force reload
-			window.location.reload(true);
-		} catch (error) {
-			console.error("Force refresh failed:", error);
-			// Fallback: just reload
-			window.location.reload();
-		}
-	}
-
-	// Add callback for update events
-	onUpdateAvailable(callback) {
-		this.callbacks.onUpdateAvailable.push(callback);
-	}
-
-	onUpdateInstalled(callback) {
-		this.callbacks.onUpdateInstalled.push(callback);
-	}
-
-	// Notify callbacks
-	notifyUpdateAvailable() {
-		this.callbacks.onUpdateAvailable.forEach((callback) => callback());
-	}
-
-	notifyUpdateInstalled() {
-		this.callbacks.onUpdateInstalled.forEach((callback) => callback());
-	}
-
-	// Get current cache version
-	async getCacheVersion() {
-		if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
-			return new Promise((resolve) => {
-				const messageChannel = new MessageChannel();
-				messageChannel.port1.onmessage = (event) => {
-					resolve(event.data.version);
-				};
-				navigator.serviceWorker.controller.postMessage(
-					{ type: "GET_VERSION" },
-					[messageChannel.port2],
-				);
+			wb.addEventListener("controlling", () => {
+				window.location.reload();
 			});
+
+			await wb.register();
+			swRegistration = await navigator.serviceWorker.ready;
+			console.log("Service Worker registered successfully");
+			return swRegistration;
+		} catch (error) {
+			console.error("Service Worker registration failed:", error);
+			return null;
 		}
+	} else {
+		console.log("Service Worker not supported");
 		return null;
 	}
-}
+};
 
-// Create singleton instance
-const swManager = new ServiceWorkerManager();
+export const updateServiceWorker = async () => {
+	if (wb) {
+		wb.messageSkipWaiting();
+	}
+};
 
-export default swManager;
+export const checkForUpdates = async () => {
+	if (wb) {
+		try {
+			await wb.update();
+		} catch (error) {
+			console.error("Failed to check for updates:", error);
+		}
+	}
+};
+
+export const unregisterServiceWorker = async () => {
+	if ("serviceWorker" in navigator) {
+		try {
+			const registrations = await navigator.serviceWorker.getRegistrations();
+			for (const registration of registrations) {
+				await registration.unregister();
+			}
+			console.log("Service Worker unregistered");
+		} catch (error) {
+			console.error("Failed to unregister Service Worker:", error);
+		}
+	}
+};
+
+// Background sync registration
+export const registerBackgroundSync = async (tag, _data) => {
+	if ("serviceWorker" in navigator && "sync" in window.ServiceWorkerRegistration.prototype) {
+		try {
+			const registration = await navigator.serviceWorker.ready;
+			await registration.sync.register(tag);
+			console.log("Background sync registered:", tag);
+		} catch (error) {
+			console.error("Background sync registration failed:", error);
+		}
+	}
+};
+
+// Push notification registration
+export const registerPushNotifications = async () => {
+	if ("serviceWorker" in navigator && "PushManager" in window) {
+		try {
+			const registration = await navigator.serviceWorker.ready;
+			const permission = await Notification.requestPermission();
+
+			if (permission === "granted") {
+				const subscription = await registration.pushManager.subscribe({
+					userVisibleOnly: true,
+					applicationServerKey: urlBase64ToUint8Array(
+						"YOUR_VAPID_PUBLIC_KEY" // Replace with your VAPID public key
+					),
+				});
+				console.log("Push notification subscription:", subscription);
+				return subscription;
+			}
+		} catch (error) {
+			console.error("Push notification registration failed:", error);
+		}
+	}
+	return null;
+};
+
+// Utility function to convert VAPID key
+const urlBase64ToUint8Array = (base64String) => {
+	const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+	const base64 = (base64String + padding)
+		.replace(/-/g, "+")
+		.replace(/_/g, "/");
+
+	const rawData = window.atob(base64);
+	const outputArray = new Uint8Array(rawData.length);
+
+	for (let i = 0; i < rawData.length; ++i) {
+		outputArray[i] = rawData.charCodeAt(i);
+	}
+	return outputArray;
+};
+
+// Check if app is running in standalone mode (installed PWA)
+export const isStandalone = () => {
+	return (
+		window.matchMedia("(display-mode: standalone)").matches ||
+		window.navigator.standalone === true
+	);
+};
+
+// Check if app is online
+export const isOnline = () => {
+	return navigator.onLine;
+};
+
+// Listen for online/offline events
+export const setupOnlineOfflineListeners = () => {
+	window.addEventListener("online", () => {
+		console.log("App is online");
+		window.dispatchEvent(new CustomEvent("app-online"));
+	});
+
+	window.addEventListener("offline", () => {
+		console.log("App is offline");
+		window.dispatchEvent(new CustomEvent("app-offline"));
+	});
+};
+
+// Get service worker registration
+export const getServiceWorkerRegistration = () => {
+	return swRegistration;
+};
