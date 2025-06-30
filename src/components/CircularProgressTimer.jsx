@@ -87,6 +87,19 @@ const CircularProgressTimer = ({
 		return `Circular progress indicator showing fasting status. ${status}`;
 	};
 
+	// Helper function to determine stroke color for progress circle
+	const getProgressStrokeColor = (progress, completed, theme) => {
+		if (progress > 100) {
+			return "url(#extendedGradient)";
+		}
+
+		if (completed) {
+			return theme.palette.success.main;
+		}
+
+		return theme.palette.primary.main;
+	};
+
 	return (
 		<Box sx={{ textAlign: "center", py: 4 }}>
 			<Box
@@ -159,13 +172,7 @@ const CircularProgressTimer = ({
 							cy="120"
 							r={PROGRESS_RING_RADIUS}
 							fill="none"
-							stroke={
-								progress > 100
-									? "url(#extendedGradient)"
-									: completed
-										? theme.palette.success.main
-										: theme.palette.primary.main
-							}
+							stroke={getProgressStrokeColor(progress, completed, theme)}
 							strokeWidth="12"
 							strokeLinecap="round"
 							strokeDasharray={PROGRESS_RING_CIRCUMFERENCE}
