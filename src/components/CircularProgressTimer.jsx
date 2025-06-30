@@ -67,6 +67,26 @@ const CircularProgressTimer = ({
 		};
 	};
 
+	// Helper function to get dynamic description for accessibility
+	const getProgressDescription = (isRunning, progress, completed, targetHours) => {
+		if (!isRunning) {
+			return "Fasting timer is not currently running. Progress ring is inactive.";
+		}
+
+		const progressPercent = Math.round(progress);
+		let status = "";
+
+		if (progress > 100) {
+			status = `Extended fasting: ${progressPercent}% of ${targetHours} hour target completed, exceeding goal.`;
+		} else if (completed) {
+			status = `Fasting complete: ${progressPercent}% of ${targetHours} hour target achieved.`;
+		} else {
+			status = `Fasting in progress: ${progressPercent}% of ${targetHours} hour target completed.`;
+		}
+
+		return `Circular progress indicator showing fasting status. ${status}`;
+	};
+
 	return (
 		<Box sx={{ textAlign: "center", py: 4 }}>
 			<Box
@@ -79,8 +99,17 @@ const CircularProgressTimer = ({
 				}}
 			>
 				{/* Custom SVG for gradient progress */}
-				<svg width="240" height="240" style={{ transform: "rotate(-90deg)" }}>
-					<title>Fasting Progress Ring</title>
+				<svg
+					width="240"
+					height="240"
+					style={{ transform: "rotate(-90deg)" }}
+					role="img"
+					aria-labelledby="fasting-progress-title fasting-progress-desc"
+				>
+					<title id="fasting-progress-title">Fasting Progress Ring</title>
+					<desc id="fasting-progress-desc">
+						{getProgressDescription(isRunning, progress, completed, targetHours)}
+					</desc>
 					<defs>
 						<linearGradient
 							id="extendedGradient"
