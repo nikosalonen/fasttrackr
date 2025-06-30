@@ -27,6 +27,46 @@ const CircularProgressTimer = ({
 		return PROGRESS_RING_CIRCUMFERENCE * (1 - normalizedProgress);
 	};
 
+	// Helper function to get timer display styles based on current state
+	const getTimerDisplayStyles = (isRunning, progress, completed) => {
+		const baseStyles = {
+			fontFamily: isRunning ? "monospace" : "inherit",
+			fontWeight: "bold",
+			fontSize: { xs: "1.75rem", sm: "2.25rem" },
+			cursor: isRunning ? "pointer" : "default",
+			userSelect: "none",
+			transition: "transform 0.1s ease",
+		};
+
+		// Determine color based on state
+		let color = "primary.main";
+		if (isRunning) {
+			if (progress > 100) {
+				color = "warning.main";
+			} else if (completed) {
+				color = "success.main";
+			}
+		}
+
+		// Add interactive styles only when running
+		const interactiveStyles = isRunning
+			? {
+					"&:hover": {
+						transform: "scale(1.02)",
+					},
+					"&:active": {
+						transform: "scale(0.98)",
+					},
+				}
+			: {};
+
+		return {
+			...baseStyles,
+			color,
+			...interactiveStyles,
+		};
+	};
+
 	return (
 		<Box sx={{ textAlign: "center", py: 4 }}>
 			<Box
@@ -126,31 +166,7 @@ const CircularProgressTimer = ({
 						variant="h2"
 						component="div"
 						onClick={onTimeToggle}
-						sx={{
-							fontFamily: isRunning ? "monospace" : "inherit",
-							fontWeight: "bold",
-							color: isRunning
-								? progress > 100
-									? "warning.main"
-									: completed
-										? "success.main"
-										: "primary.main"
-								: "primary.main",
-							fontSize: { xs: "1.75rem", sm: "2.25rem" },
-							cursor: isRunning ? "pointer" : "default",
-							userSelect: "none",
-							transition: "transform 0.1s ease",
-							"&:hover": isRunning
-								? {
-										transform: "scale(1.02)",
-									}
-								: {},
-							"&:active": isRunning
-								? {
-										transform: "scale(0.98)",
-									}
-								: {},
-						}}
+						sx={getTimerDisplayStyles(isRunning, progress, completed)}
 					>
 						{displayTime}
 					</Typography>
