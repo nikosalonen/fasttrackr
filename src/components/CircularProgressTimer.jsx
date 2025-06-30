@@ -100,6 +100,27 @@ const CircularProgressTimer = ({
 		return theme.palette.primary.main;
 	};
 
+	// Helper function to get accessible chip content and label
+	const getChipContent = (progress) => {
+		const isExtended = progress > 100;
+
+		return {
+			label: (
+				<>
+					<span aria-hidden="true">{isExtended ? "🔥" : "🎉"}</span>
+					{" "}
+					{isExtended ? "Target Exceeded!" : "Fast Complete!"}
+				</>
+			),
+			ariaLabel: isExtended
+				? "Celebration: Fasting target exceeded!"
+				: "Celebration: Fast completed successfully!"
+		};
+	};
+
+	// Calculate chip content once for efficiency
+	const chipContent = completed ? getChipContent(progress) : null;
+
 	return (
 		<Box sx={{ textAlign: "center", py: 4 }}>
 			<Box
@@ -240,11 +261,10 @@ const CircularProgressTimer = ({
 						Target: {targetHours}:00:00
 					</Typography>
 
-					{completed && (
+					{completed && chipContent && (
 						<Chip
-							label={
-								progress > 100 ? "🔥 Target Exceeded!" : "🎉 Fast Complete!"
-							}
+							label={chipContent.label}
+							aria-label={chipContent.ariaLabel}
 							color={progress > 100 ? "warning" : "success"}
 							variant="filled"
 							sx={{ fontSize: "1rem", py: 2, px: 1 }}
