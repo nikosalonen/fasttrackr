@@ -10,7 +10,8 @@
 		"start": "npm run dev",
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"validate": "npx pwa-asset-generator --help > /dev/null && echo 'PWA tools available'",
-		"icons": "npx pwa-asset-generator public/icons/icon-base.svg public/icons/ --background '#2563eb' --theme-color '#2563eb'"
+		"icons": "npx pwa-asset-generator public/icons/icon-base.svg public/icons/ --background '#2563eb' --theme-color '#2563eb'",
+		"type-check": "tsc --noEmit"
 	},
 	"keywords": [
 		"pwa",
@@ -26,9 +27,13 @@
 	"type": "module",
 	"devDependencies": {
 		"@biomejs/biome": "2.0.6",
+		"@types/node": "^24.0.7",
+		"@types/react": "^19.1.8",
+		"@types/react-dom": "^19.1.6",
 		"@vitejs/plugin-react": "^4.6.0",
 		"pwa-asset-generator": "^8.0.0",
 		"serve": "^14.2.1",
+		"typescript": "^5.8.3",
 		"vite": "^7.0.0"
 	},
 	"pwa": {
