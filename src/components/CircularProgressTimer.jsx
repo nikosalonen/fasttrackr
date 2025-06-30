@@ -36,15 +36,11 @@ const CircularProgressTimer = ({
 		const baseStyles = {
 			fontFamily: isRunning ? "monospace" : "inherit",
 			fontWeight: "bold",
-			fontSize: { xs: "2rem", sm: "2.5rem", md: "2.75rem" },
+			fontSize: { xs: "2rem", sm: "2.5rem", md: "2.75rem" }, // Increased font sizes for better visibility in larger circle
 			cursor: isRunning ? "pointer" : "default",
 			userSelect: "none",
 			transition: "transform 0.1s ease",
-			lineHeight: 1.1,
-			maxWidth: `${size * 0.8}px`,
-			whiteSpace: "nowrap",
-			overflow: "hidden",
-			textOverflow: "ellipsis",
+			lineHeight: 1.1, // Tighter line height for better fitting
 		};
 
 		// Button reset styles when component is rendered as button
@@ -84,12 +80,32 @@ const CircularProgressTimer = ({
 				}
 			: {};
 
-		return {
-			...baseStyles,
-			...buttonResetStyles,
-			color,
-			...interactiveStyles,
-		};
+		// Different styles for running vs non-running states
+		if (isRunning) {
+			// Timer display - keep on single line
+			return {
+				...baseStyles,
+				...buttonResetStyles,
+				color,
+				...interactiveStyles,
+				maxWidth: `${size * 0.8}px`,
+				whiteSpace: "nowrap",
+				overflow: "hidden",
+				textOverflow: "ellipsis",
+			};
+		} else {
+			// Ready state - allow wrapping and more space
+			return {
+				...baseStyles,
+				...buttonResetStyles,
+				color,
+				...interactiveStyles,
+				maxWidth: `${size * 0.9}px`, // More space for "Ready to fast?"
+				textAlign: "center",
+				wordWrap: "break-word",
+				hyphens: "auto",
+			};
+		}
 	};
 
 	// Helper function to get dynamic description for accessibility
