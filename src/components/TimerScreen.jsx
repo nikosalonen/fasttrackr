@@ -179,6 +179,22 @@ const TimerScreen = () => {
 
 	const targetHours = Math.floor(targetDuration / (1000 * 60 * 60));
 
+	// Constants for the progress ring
+	const PROGRESS_RING_RADIUS = 108;
+	const PROGRESS_RING_CIRCUMFERENCE = 2 * Math.PI * PROGRESS_RING_RADIUS;
+
+	// Helper function to calculate stroke-dashoffset for circular progress
+	const calculateStrokeDashOffset = (progressPercent) => {
+		// For progress > 100%, show only the excess (e.g., 150% shows as 50%)
+		const normalizedProgress =
+			progressPercent > 100
+				? (progressPercent % 100) / 100
+				: progressPercent / 100;
+
+		// Calculate offset: full circumference minus the progress portion
+		return PROGRESS_RING_CIRCUMFERENCE * (1 - normalizedProgress);
+	};
+
 	return (
 		<Box sx={{ maxWidth: 600, mx: "auto", mt: 2 }}>
 			<Stack spacing={3}>
@@ -224,7 +240,7 @@ const TimerScreen = () => {
 								<circle
 									cx="120"
 									cy="120"
-									r="108"
+									r={PROGRESS_RING_RADIUS}
 									fill="none"
 									stroke={theme.palette.grey[200]}
 									strokeWidth="12"
@@ -235,13 +251,13 @@ const TimerScreen = () => {
 									<circle
 										cx="120"
 										cy="120"
-										r="108"
+										r={PROGRESS_RING_RADIUS}
 										fill="none"
 										stroke={theme.palette.success.main}
 										strokeWidth="12"
 										strokeOpacity="0.4"
 										strokeLinecap="round"
-										strokeDasharray={`${2 * Math.PI * 108}`}
+										strokeDasharray={PROGRESS_RING_CIRCUMFERENCE}
 										strokeDashoffset="0"
 									/>
 								)}
@@ -251,7 +267,7 @@ const TimerScreen = () => {
 									<circle
 										cx="120"
 										cy="120"
-										r="108"
+										r={PROGRESS_RING_RADIUS}
 										fill="none"
 										stroke={
 											progress > 100
@@ -262,8 +278,8 @@ const TimerScreen = () => {
 										}
 										strokeWidth="12"
 										strokeLinecap="round"
-										strokeDasharray={`${2 * Math.PI * 108}`}
-										strokeDashoffset={`${2 * Math.PI * 108 * (1 - (progress > 100 ? (progress % 100) / 100 : progress / 100))}`}
+										strokeDasharray={PROGRESS_RING_CIRCUMFERENCE}
+										strokeDashoffset={calculateStrokeDashOffset(progress)}
 										style={{
 											transition: "stroke-dashoffset 0.3s ease",
 										}}
@@ -314,9 +330,7 @@ const TimerScreen = () => {
 											: {},
 									}}
 								>
-									{isRunning
-										? formatTime(getDisplayTime())
-										: "Ready to fast?"}
+									{isRunning ? formatTime(getDisplayTime()) : "Ready to fast?"}
 								</Typography>
 
 								{getTimeLabel() && isRunning && (
