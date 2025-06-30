@@ -13,7 +13,7 @@ import {
 	Stack,
 	Typography,
 } from "@mui/material";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const StatsScreen = () => {
 	const [stats, setStats] = useState({
