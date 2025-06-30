@@ -1,4 +1,4 @@
-import { Close as CloseIcon, SportsBar as BeerIcon } from "@mui/icons-material";
+import { SportsBar as BeerIcon, Close as CloseIcon } from "@mui/icons-material";
 import {
 	Box,
 	Card,
@@ -8,7 +8,7 @@ import {
 	Typography,
 	useTheme,
 } from "@mui/material";
-import React, { useState } from "react";
+import { useState } from "react";
 
 const SupportDeveloper = () => {
 	const theme = useTheme();
@@ -72,7 +72,7 @@ const SupportDeveloper = () => {
 							rel="noopener noreferrer"
 						>
 							<img
-								src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png"
+								src="https://img.buymeacoffee.com/button-api/?text=Buy me a beer&emoji=🍺&slug=nikosalonen&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff"
 								alt="Buy Me A Beer"
 								style={{ height: "60px", width: "217px" }}
 							/>
