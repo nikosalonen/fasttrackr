@@ -138,6 +138,13 @@ const CircularProgressTimer = ({
 		};
 	};
 
+	// Helper function to get status text for progress display
+	const getStatusText = () => {
+		const percentage = Math.round(progress);
+		const status = progress > 100 ? "Extended" : "Complete";
+		return `${percentage}% ${status}`;
+	};
+
 	// Calculate chip content once for efficiency
 	const chipContent = completed ? getChipContent(progress) : null;
 
@@ -291,7 +298,7 @@ const CircularProgressTimer = ({
 							color="text.secondary"
 							sx={{ mt: 1, fontSize: "0.8rem" }}
 						>
-							{Math.round(progress)}% {progress > 100 ? "Extended" : "Complete"}
+							{getStatusText()}
 						</Typography>
 					)}
 				</Box>
