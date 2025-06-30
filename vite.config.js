@@ -34,7 +34,7 @@ export default defineConfig({
 					},
 				],
 			},
-			includeAssets: ["favicon.ico", "apple-touch-icon.png", "masked-icon.svg"],
+			includeAssets: ["icons/apple-icon-180.png", "icons/icon-base.svg"],
 			manifest: {
 				name: "FastTrackr - Intermittent Fasting Timer",
 				short_name: "FastTrackr",
