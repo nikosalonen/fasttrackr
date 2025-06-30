@@ -1,135 +1,125 @@
-// Service Worker Update Manager
+// Workbox Service Worker Manager
+import { Workbox } from "workbox-window";
 
-interface ServiceWorkerCallbacks {
+interface WorkboxCallbacks {
 	onUpdateAvailable: Array<() => void>;
 	onUpdateInstalled: Array<() => void>;
-}
-
-interface ServiceWorkerMessage {
-	type: string;
-	message?: string;
-	version?: string;
-}
-
-interface ServiceWorkerManagerOptions {
-	scope?: string;
-	scriptURL?: string;
+	onOfflineReady: Array<() => void>;
 }
 
 type UpdateCallback = () => void;
 
-export class ServiceWorkerManager {
+export class WorkboxServiceWorkerManager {
+	private workbox: Workbox | null;
 	private registration: ServiceWorkerRegistration | null;
 	private updateAvailable: boolean;
-	private callbacks: ServiceWorkerCallbacks;
+	private callbacks: WorkboxCallbacks;
 
 	constructor() {
+		this.workbox = null;
 		this.registration = null;
 		this.updateAvailable = false;
 		this.callbacks = {
 			onUpdateAvailable: [],
 			onUpdateInstalled: [],
+			onOfflineReady: [],
 		};
 	}
 
-	// Initialize service worker with update handling
-	async init(options: ServiceWorkerManagerOptions = {}): Promise<ServiceWorkerRegistration> {
+	// Initialize Workbox service worker
+	async init(): Promise<ServiceWorkerRegistration | undefined> {
 		if (!("serviceWorker" in navigator)) {
-			throw new Error("Service Worker not supported");
+			console.warn("Service Worker not supported");
+			return undefined;
 		}
 
-		const { scope = "/", scriptURL = "/sw.js" } = options;
-
 		try {
-			this.registration = await navigator.serviceWorker.register(scriptURL, {
-				scope,
+			// Create Workbox instance
+			this.workbox = new Workbox("/sw.js", {
+				scope: "/",
 			});
 
-			console.log("Service Worker registered successfully");
+			// Set up event listeners
+			this.setupWorkboxListeners();
 
-			// Check for updates immediately
-			await this.checkForUpdates();
+			// Register the service worker
+			this.registration = await this.workbox.register();
 
-			// Set up update listeners
-			this.setupUpdateListeners();
-
-			// Listen for messages from service worker
-			navigator.serviceWorker.addEventListener(
-				"message",
-				this.handleSWMessage.bind(this),
-			);
-
+			console.log("Workbox service worker registered successfully");
 			return this.registration;
 		} catch (error) {
-			console.error("Service Worker registration failed:", error);
+			console.error("Workbox service worker registration failed:", error);
 			throw error;
 		}
 	}
 
-	// Set up listeners for service worker updates
-	private setupUpdateListeners(): void {
-		if (!this.registration) return;
+	// Set up Workbox event listeners
+	private setupWorkboxListeners(): void {
+		if (!this.workbox) return;
 
-		// Listen for new service worker installing
-		this.registration.addEventListener("updatefound", () => {
-			const newWorker = this.registration?.installing;
-			if (!newWorker) return;
-
-			console.log("New service worker found, installing...");
-
-			newWorker.addEventListener("statechange", () => {
-				if (newWorker.state === "installed") {
-					if (navigator.serviceWorker.controller) {
-						// New update available
-						console.log("New service worker installed, update available");
-						this.updateAvailable = true;
-						this.notifyUpdateAvailable();
-					} else {
-						// First time install
-						console.log("Service worker installed for first time");
-						this.notifyUpdateInstalled();
-					}
-				}
-			});
-		});
-
-		// Listen for controlling service worker change
-		navigator.serviceWorker.addEventListener("controllerchange", () => {
-			console.log("Service worker controller changed, reloading...");
-			window.location.reload();
-		});
-	}
-
-	// Handle messages from service worker
-	private handleSWMessage(event: MessageEvent<ServiceWorkerMessage>): void {
-		const { data } = event;
-
-		if (data.type === "SW_UPDATED") {
-			console.log("Service worker updated:", data.message);
-			this.notifyUpdateInstalled();
-		}
-	}
-
-	// Check for service worker updates
-	async checkForUpdates(): Promise<void> {
-		if (this.registration) {
-			try {
-				await this.registration.update();
-				console.log("Service worker update check completed");
-			} catch (error) {
-				console.error("Service worker update check failed:", error);
+		// Service worker is installed and ready to control the page
+		this.workbox.addEventListener("installed", (event) => {
+			if (!event.isUpdate) {
+				console.log("Service worker installed for the first time");
+				this.notifyOfflineReady();
 			}
-		}
+		});
+
+		// Service worker has been updated and is waiting to activate
+		this.workbox.addEventListener("waiting", () => {
+			console.log("New service worker installed, update available");
+			this.updateAvailable = true;
+			this.notifyUpdateAvailable();
+		});
+
+		// Service worker has been activated and is now controlling the page
+		this.workbox.addEventListener("controlling", () => {
+			console.log("Service worker is now controlling the page");
+			this.notifyUpdateInstalled();
+		});
+
+		// Service worker activation was skipped
+		this.workbox.addEventListener("activated", (event) => {
+			if (!event.isUpdate) {
+				console.log("Service worker activated for the first time");
+			} else {
+				console.log("Service worker updated and activated");
+			}
+		});
+
+		// Handle service worker errors
+		this.workbox.addEventListener("redundant", () => {
+			console.warn("Service worker became redundant");
+		});
 	}
 
 	// Force apply pending updates
 	async applyUpdate(): Promise<boolean> {
-		if (this.registration?.waiting) {
-			// Tell the waiting service worker to skip waiting
-			this.registration.waiting.postMessage({ type: "SKIP_WAITING" });
-			return true;
+		if (this.workbox && this.updateAvailable) {
+			try {
+				// Tell the waiting service worker to skip waiting and become active
+				await this.workbox.messageSkipWaiting();
+				
+				// The controlling event will trigger page reload
+				return true;
+			} catch (error) {
+				console.error("Failed to apply update:", error);
+				return false;
+			}
 		}
 		return false;
+	}
+
+	// Check for service worker updates manually
+	async checkForUpdates(): Promise<void> {
+		if (this.workbox) {
+			try {
+				await this.workbox.update();
+				console.log("Workbox update check completed");
+			} catch (error) {
+				console.error("Workbox update check failed:", error);
+			}
+		}
 	}
 
 	// Force refresh - clear caches and reload
@@ -168,6 +158,10 @@ export class ServiceWorkerManager {
 		this.callbacks.onUpdateInstalled.push(callback);
 	}
 
+	onOfflineReady(callback: UpdateCallback): void {
+		this.callbacks.onOfflineReady.push(callback);
+	}
+
 	// Notify callbacks
 	private notifyUpdateAvailable(): void {
 		this.callbacks.onUpdateAvailable.forEach((callback) => callback());
@@ -177,21 +171,50 @@ export class ServiceWorkerManager {
 		this.callbacks.onUpdateInstalled.forEach((callback) => callback());
 	}
 
-	// Get current cache version
-	async getCacheVersion(): Promise<string | null> {
-		if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
-			return new Promise<string | null>((resolve) => {
-				const messageChannel = new MessageChannel();
-				messageChannel.port1.onmessage = (event: MessageEvent<{ version?: string }>) => {
-					resolve(event.data.version || null);
-				};
-				navigator.serviceWorker.controller?.postMessage(
-					{ type: "GET_VERSION" },
-					[messageChannel.port2],
-				);
-			});
+	private notifyOfflineReady(): void {
+		this.callbacks.onOfflineReady.forEach((callback) => callback());
+	}
+
+	// Send message to service worker
+	async postMessage(message: any): Promise<any> {
+		if (this.workbox) {
+			return await this.workbox.messageSW(message);
 		}
 		return null;
+	}
+
+	// Get current cache status
+	async getCacheStatus(): Promise<{ size: number; cacheNames: string[] }> {
+		if ("caches" in window) {
+			try {
+				const cacheNames = await caches.keys();
+				let totalSize = 0;
+
+				for (const cacheName of cacheNames) {
+					const cache = await caches.open(cacheName);
+					const requests = await cache.keys();
+					for (const request of requests) {
+						const response = await cache.match(request);
+						if (response) {
+							const blob = await response.blob();
+							totalSize += blob.size;
+						}
+					}
+				}
+
+				return {
+					size: totalSize,
+					cacheNames,
+				};
+			} catch (error) {
+				console.error("Failed to get cache status:", error);
+			}
+		}
+
+		return {
+			size: 0,
+			cacheNames: [],
+		};
 	}
 
 	// Getters for read-only access to internal state
@@ -202,9 +225,13 @@ export class ServiceWorkerManager {
 	get serviceWorkerRegistration(): ServiceWorkerRegistration | null {
 		return this.registration;
 	}
+
+	get workboxInstance(): Workbox | null {
+		return this.workbox;
+	}
 }
 
 // Create singleton instance
-const swManager = new ServiceWorkerManager();
+const workboxManager = new WorkboxServiceWorkerManager();
 
-export default swManager;
+export default workboxManager;
