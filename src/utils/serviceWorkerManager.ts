@@ -219,6 +219,23 @@ export class WorkboxServiceWorkerManager {
 		};
 	}
 
+	// Get cache version information
+	async getCacheVersion(): Promise<string> {
+		try {
+			const cacheStatus = await this.getCacheStatus();
+			if (cacheStatus.cacheNames.length > 0) {
+				// Return the first cache name as version identifier
+				// This typically contains workbox version info
+				return cacheStatus.cacheNames[0];
+			}
+			// Fallback to a timestamp-based version
+			return `v${Date.now()}`;
+		} catch (error) {
+			console.error("Failed to get cache version:", error);
+			return `v${Date.now()}`;
+		}
+	}
+
 	// Getters for read-only access to internal state
 	get isUpdateAvailable(): boolean {
 		return this.updateAvailable;
