@@ -8,12 +8,16 @@ const CircularProgressTimer = ({
 	timeLabel,
 	onTimeToggle,
 	targetHours,
+	size = 240,
+	strokeWidth = 12,
 }) => {
 	const theme = useTheme();
 
-	// Constants for the progress ring
-	const PROGRESS_RING_RADIUS = 108;
-	const PROGRESS_RING_CIRCUMFERENCE = 2 * Math.PI * PROGRESS_RING_RADIUS;
+	// Calculate dynamic dimensions based on props
+	const svgSize = size;
+	const center = svgSize / 2;
+	const radius = center - strokeWidth * 2; // Leave some padding for the stroke
+	const circumference = 2 * Math.PI * radius;
 
 	// Helper function to calculate stroke-dashoffset for circular progress
 	const calculateStrokeDashOffset = (progressPercent) => {
@@ -24,7 +28,7 @@ const CircularProgressTimer = ({
 				: progressPercent / 100;
 
 		// Calculate offset: full circumference minus the progress portion
-		return PROGRESS_RING_CIRCUMFERENCE * (1 - normalizedProgress);
+		return circumference * (1 - normalizedProgress);
 	};
 
 	// Helper function to get timer display styles based on current state
@@ -150,8 +154,8 @@ const CircularProgressTimer = ({
 			>
 				{/* Custom SVG for gradient progress */}
 				<svg
-					width="240"
-					height="240"
+					width={svgSize}
+					height={svgSize}
 					style={{ transform: "rotate(-90deg)" }}
 					role="img"
 					aria-labelledby="fasting-progress-title fasting-progress-desc"
@@ -166,8 +170,8 @@ const CircularProgressTimer = ({
 							gradientUnits="userSpaceOnUse"
 							x1="0"
 							y1="0"
-							x2="240"
-							y2="240"
+							x2={svgSize}
+							y2={svgSize}
 						>
 							<stop offset="0%" stopColor={theme.palette.success.main} />
 							<stop offset="60%" stopColor={theme.palette.success.main} />
@@ -178,26 +182,26 @@ const CircularProgressTimer = ({
 
 					{/* Background circle */}
 					<circle
-						cx="120"
-						cy="120"
-						r={PROGRESS_RING_RADIUS}
+						cx={center}
+						cy={center}
+						r={radius}
 						fill="none"
 						stroke={theme.palette.grey[200]}
-						strokeWidth="12"
+						strokeWidth={strokeWidth}
 					/>
 
 					{/* Base circle when extended (faded) */}
 					{isRunning && progress > 100 && (
 						<circle
-							cx="120"
-							cy="120"
-							r={PROGRESS_RING_RADIUS}
+							cx={center}
+							cy={center}
+							r={radius}
 							fill="none"
 							stroke={theme.palette.success.main}
-							strokeWidth="12"
+							strokeWidth={strokeWidth}
 							strokeOpacity="0.4"
 							strokeLinecap="round"
-							strokeDasharray={PROGRESS_RING_CIRCUMFERENCE}
+							strokeDasharray={circumference}
 							strokeDashoffset="0"
 						/>
 					)}
@@ -205,14 +209,14 @@ const CircularProgressTimer = ({
 					{/* Active progress circle */}
 					{isRunning && (
 						<circle
-							cx="120"
-							cy="120"
-							r={PROGRESS_RING_RADIUS}
+							cx={center}
+							cy={center}
+							r={radius}
 							fill="none"
 							stroke={getProgressStrokeColor(progress, completed, theme)}
-							strokeWidth="12"
+							strokeWidth={strokeWidth}
 							strokeLinecap="round"
-							strokeDasharray={PROGRESS_RING_CIRCUMFERENCE}
+							strokeDasharray={circumference}
 							strokeDashoffset={calculateStrokeDashOffset(progress)}
 							style={{
 								transition: "stroke-dashoffset 0.3s ease",
