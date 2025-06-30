@@ -1,13 +1,16 @@
-import React, {
+import type React from "react";
+import {
 	createContext,
 	useCallback,
 	useContext,
 	useEffect,
 	useState,
 } from "react";
-import type { FastTimerContextValue, FastRecord } from "../types/hooks";
+import type { FastRecord, FastTimerContextValue } from "../types/hooks";
 
-const FastTimerContext = createContext<FastTimerContextValue | undefined>(undefined);
+const FastTimerContext = createContext<FastTimerContextValue | undefined>(
+	undefined,
+);
 
 export const useFastTimer = () => {
 	const context = useContext(FastTimerContext);
@@ -17,7 +20,9 @@ export const useFastTimer = () => {
 	return context;
 };
 
-export const FastTimerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const FastTimerProvider: React.FC<{ children: React.ReactNode }> = ({
+	children,
+}) => {
 	const [isRunning, setIsRunning] = useState(false);
 	const [startTime, setStartTime] = useState<Date | null>(null);
 	const [targetDuration, setTargetDuration] = useState(16 * 60 * 60 * 1000); // 16 hours
@@ -100,7 +105,9 @@ export const FastTimerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
 		let history: FastRecord[] = [];
 		try {
-			history = JSON.parse(localStorage.getItem("fastHistory") || "[]") as FastRecord[];
+			history = JSON.parse(
+				localStorage.getItem("fastHistory") || "[]",
+			) as FastRecord[];
 		} catch (error) {
 			console.error("Failed to parse fast history:", error);
 		}

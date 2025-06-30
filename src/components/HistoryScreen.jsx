@@ -29,7 +29,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import dayjs from "dayjs";
-import React, { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const HistoryScreen = () => {
 	const [fasts, setFasts] = useState([]);
@@ -38,14 +38,14 @@ const HistoryScreen = () => {
 	const [menuAnchor, setMenuAnchor] = useState(null);
 	const [selectedFast, setSelectedFast] = useState(null);
 
-	useEffect(() => {
-		loadHistory();
-	}, []);
-
-	const loadHistory = () => {
+	const loadHistory = useCallback(() => {
 		const history = JSON.parse(localStorage.getItem("fastHistory") || "[]");
 		setFasts(history);
-	};
+	}, []);
+
+	useEffect(() => {
+		loadHistory();
+	}, [loadHistory]);
 
 	const formatDuration = (milliseconds) => {
 		const totalSeconds = Math.floor(milliseconds / 1000);
@@ -54,9 +54,8 @@ const HistoryScreen = () => {
 
 		if (hours > 0) {
 			return `${hours}h ${minutes}m`;
-		} else {
-			return `${minutes}m`;
 		}
+		return `${minutes}m`;
 	};
 
 	const formatDateTime = (dateString) => {

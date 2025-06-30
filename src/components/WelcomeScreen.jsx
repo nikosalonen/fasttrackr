@@ -17,7 +17,6 @@ import {
 	Typography,
 	useTheme,
 } from "@mui/material";
-import React from "react";
 
 const WelcomeScreen = ({ open, onClose }) => {
 	const theme = useTheme();

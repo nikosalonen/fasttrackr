@@ -11,7 +11,7 @@ import {
 	useMediaQuery,
 	useTheme,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 const InstallPrompt = () => {
 	const theme = useTheme();
@@ -46,7 +46,7 @@ const InstallPrompt = () => {
 
 				if (
 					!hasBeenPrompted ||
-					(lastPrompted && parseInt(lastPrompted) < oneDayAgo)
+					(lastPrompted && Number.parseInt(lastPrompted) < oneDayAgo)
 				) {
 					setShowPrompt(true);
 				}

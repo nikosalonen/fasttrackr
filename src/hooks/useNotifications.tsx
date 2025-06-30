@@ -1,4 +1,5 @@
-import React, {
+import type React from "react";
+import {
 	createContext,
 	useCallback,
 	useContext,
@@ -7,7 +8,9 @@ import React, {
 } from "react";
 import type { NotificationContextValue } from "../types/hooks";
 
-const NotificationContext = createContext<NotificationContextValue | undefined>(undefined);
+const NotificationContext = createContext<NotificationContextValue | undefined>(
+	undefined,
+);
 
 export const useNotifications = () => {
 	const context = useContext(NotificationContext);
@@ -19,8 +22,11 @@ export const useNotifications = () => {
 	return context;
 };
 
-export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-	const [permission, setPermission] = useState<NotificationPermission>("default");
+export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
+	children,
+}) => {
+	const [permission, setPermission] =
+		useState<NotificationPermission>("default");
 	const [isEnabled, setIsEnabled] = useState(false);
 	const [milestoneNotifications, setMilestoneNotifications] = useState(true);
 

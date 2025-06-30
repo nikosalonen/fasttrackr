@@ -18,7 +18,7 @@ import {
 	Stack,
 	Typography,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import swManager from "../utils/serviceWorkerManager";
 
 const UpdateNotification = () => {
@@ -77,7 +77,7 @@ const UpdateNotification = () => {
 		}
 	};
 
-	const handleCheckForUpdates = async () => {
+	const _handleCheckForUpdates = async () => {
 		setIsUpdating(true);
 		try {
 			await swManager.checkForUpdates();

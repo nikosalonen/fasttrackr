@@ -9,11 +9,3 @@ export interface CircularProgressTimerProps {
 	size?: number;
 	strokeWidth?: number;
 }
-
-export type TimerScreenProps = {};
-
-export type HistoryScreenProps = {};
-
-export type SettingsScreenProps = {};
-
-export type StatsScreenProps = {};

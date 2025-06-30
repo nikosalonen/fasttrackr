@@ -26,7 +26,7 @@ import {
 	TextField,
 	Typography,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNotifications } from "../hooks/useNotifications";
 import SupportDeveloper from "./SupportDeveloper";
 import { updateUtils } from "./UpdateNotification";

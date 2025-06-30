@@ -53,7 +53,7 @@ const TimerScreen = () => {
 
 	const [selectedDuration, setSelectedDuration] = useState(() => {
 		const saved = localStorage.getItem("selectedDuration");
-		return saved ? parseInt(saved) : 16;
+		return saved ? Number.parseInt(saved) : 16;
 	});
 	const [customHours, setCustomHours] = useState(() => {
 		return localStorage.getItem("customHours") || "";
@@ -78,7 +78,9 @@ const TimerScreen = () => {
 	}, [completed, isRunning, targetDuration, showFastCompleteNotification]);
 
 	const handleStart = () => {
-		const duration = showCustomInput ? parseInt(customHours) : selectedDuration;
+		const duration = showCustomInput
+			? Number.parseInt(customHours)
+			: selectedDuration;
 		if (showCustomInput && (!duration || duration <= 0)) {
 			alert("Please enter a valid duration in hours");
 			return;

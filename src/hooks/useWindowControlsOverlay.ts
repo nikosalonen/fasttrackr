@@ -50,14 +50,14 @@ export const useWindowControlsOverlay = (): WindowControlsOverlayHook => {
 		};
 
 		if (isSupported && navigator.windowControlsOverlay) {
-			(navigator.windowControlsOverlay as any).addEventListener(
+			navigator.windowControlsOverlay.addEventListener(
 				"geometrychange",
 				handleGeometryChange,
 			);
 
 			return () => {
 				if (navigator.windowControlsOverlay) {
-					(navigator.windowControlsOverlay as any).removeEventListener(
+					navigator.windowControlsOverlay.removeEventListener(
 						"geometrychange",
 						handleGeometryChange,
 					);

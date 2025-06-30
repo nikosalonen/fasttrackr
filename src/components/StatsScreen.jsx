@@ -12,12 +12,10 @@ import {
 	Grid,
 	Stack,
 	Typography,
-	useTheme,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 const StatsScreen = () => {
-	const theme = useTheme();
 	const [stats, setStats] = useState({
 		totalFasts: 0,
 		completedFasts: 0,
@@ -30,11 +28,7 @@ const StatsScreen = () => {
 		completionRate: 0,
 	});
 
-	useEffect(() => {
-		calculateStats();
-	}, []);
-
-	const calculateStats = () => {
+	const calculateStats = useCallback(() => {
 		const fasts = JSON.parse(localStorage.getItem("fastHistory") || "[]");
 		const now = new Date();
 
@@ -106,7 +100,11 @@ const StatsScreen = () => {
 			thisMonthFasts,
 			completionRate,
 		});
-	};
+	}, []);
+
+	useEffect(() => {
+		calculateStats();
+	}, [calculateStats]);
 
 	const formatDuration = (milliseconds) => {
 		const totalSeconds = Math.floor(milliseconds / 1000);
@@ -115,9 +113,8 @@ const StatsScreen = () => {
 
 		if (hours > 0) {
 			return `${hours}h ${minutes}m`;
-		} else {
-			return `${minutes}m`;
 		}
+		return `${minutes}m`;
 	};
 
 	const formatTotalTime = (milliseconds) => {
@@ -127,9 +124,8 @@ const StatsScreen = () => {
 
 		if (days > 0) {
 			return `${days}d ${hours}h`;
-		} else {
-			return `${hours}h`;
 		}
+		return `${hours}h`;
 	};
 
 	const StatCard = ({ title, value, subtitle, icon, color = "primary" }) => (

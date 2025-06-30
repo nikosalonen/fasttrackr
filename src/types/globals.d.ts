@@ -1,6 +1,6 @@
 // PWA-specific type definitions
 
-interface WindowControlsOverlay {
+interface WindowControlsOverlay extends EventTarget {
 	visible: boolean;
 	getTitlebarAreaRect(): DOMRect;
 }

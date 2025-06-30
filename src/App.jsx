@@ -15,7 +15,7 @@ import {
 	useMediaQuery,
 	useTheme,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import HistoryScreen from "./components/HistoryScreen";
 import InstallPrompt from "./components/InstallPrompt";
 import SettingsScreen from "./components/SettingsScreen";
@@ -26,6 +26,7 @@ import WelcomeScreen from "./components/WelcomeScreen";
 import { FastTimerProvider } from "./hooks/useFastTimer";
 import { NotificationProvider } from "./hooks/useNotifications";
 import { useWindowControlsOverlay } from "./hooks/useWindowControlsOverlay";
+
 function App() {
 	const [currentTab, setCurrentTab] = useState(0);
 	const [isFirstVisit, setIsFirstVisit] = useState(() => {

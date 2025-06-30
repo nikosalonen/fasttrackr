@@ -44,19 +44,21 @@ const CircularProgressTimer = ({
 		};
 
 		// Button reset styles when component is rendered as button
-		const buttonResetStyles = isRunning ? {
-			background: "none",
-			border: "none",
-			padding: 0,
-			margin: 0,
-			outline: "none",
-			textAlign: "inherit",
-			"&:focus-visible": {
-				outline: "2px solid",
-				outlineColor: "primary.main",
-				outlineOffset: "2px",
-			},
-		} : {};
+		const buttonResetStyles = isRunning
+			? {
+					background: "none",
+					border: "none",
+					padding: 0,
+					margin: 0,
+					outline: "none",
+					textAlign: "inherit",
+					"&:focus-visible": {
+						outline: "2px solid",
+						outlineColor: "primary.main",
+						outlineOffset: "2px",
+					},
+				}
+			: {};
 
 		// Determine color based on state
 		let color = "primary.main";
@@ -109,7 +111,12 @@ const CircularProgressTimer = ({
 	};
 
 	// Helper function to get dynamic description for accessibility
-	const getProgressDescription = (isRunning, progress, completed, targetHours) => {
+	const getProgressDescription = (
+		isRunning,
+		progress,
+		completed,
+		targetHours,
+	) => {
 		if (!isRunning) {
 			return "Fasting timer is not currently running. Progress ring is inactive.";
 		}
@@ -148,14 +155,13 @@ const CircularProgressTimer = ({
 		return {
 			label: (
 				<>
-					<span aria-hidden="true">{isExtended ? "🔥" : "🎉"}</span>
-					{" "}
+					<span aria-hidden="true">{isExtended ? "🔥" : "🎉"}</span>{" "}
 					{isExtended ? "Target Exceeded!" : "Fast Complete!"}
 				</>
 			),
 			ariaLabel: isExtended
 				? "Celebration: Fasting target exceeded!"
-				: "Celebration: Fast completed successfully!"
+				: "Celebration: Fast completed successfully!",
 		};
 	};
 
@@ -190,7 +196,12 @@ const CircularProgressTimer = ({
 				>
 					<title id="fasting-progress-title">Fasting Progress Ring</title>
 					<desc id="fasting-progress-desc">
-						{getProgressDescription(isRunning, progress, completed, targetHours)}
+						{getProgressDescription(
+							isRunning,
+							progress,
+							completed,
+							targetHours,
+						)}
 					</desc>
 					<defs>
 						<linearGradient
@@ -273,7 +284,11 @@ const CircularProgressTimer = ({
 						onClick={onTimeToggle}
 						sx={getTimerDisplayStyles(isRunning, progress, completed)}
 						role={isRunning ? "button" : undefined}
-						aria-label={isRunning ? `Timer display: ${displayTime}. Click to toggle between elapsed time and remaining time.` : undefined}
+						aria-label={
+							isRunning
+								? `Timer display: ${displayTime}. Click to toggle between elapsed time and remaining time.`
+								: undefined
+						}
 						tabIndex={isRunning ? 0 : -1}
 					>
 						{displayTime}
