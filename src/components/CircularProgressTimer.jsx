@@ -8,7 +8,7 @@ const CircularProgressTimer = ({
 	timeLabel,
 	onTimeToggle,
 	targetHours,
-	size = 240,
+	size = 300,
 	strokeWidth = 12,
 }) => {
 	const theme = useTheme();
@@ -36,10 +36,15 @@ const CircularProgressTimer = ({
 		const baseStyles = {
 			fontFamily: isRunning ? "monospace" : "inherit",
 			fontWeight: "bold",
-			fontSize: { xs: "1.75rem", sm: "2.25rem" },
+			fontSize: { xs: "2rem", sm: "2.5rem", md: "2.75rem" },
 			cursor: isRunning ? "pointer" : "default",
 			userSelect: "none",
 			transition: "transform 0.1s ease",
+			lineHeight: 1.1,
+			maxWidth: `${size * 0.8}px`,
+			whiteSpace: "nowrap",
+			overflow: "hidden",
+			textOverflow: "ellipsis",
 		};
 
 		// Button reset styles when component is rendered as button
