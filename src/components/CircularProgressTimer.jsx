@@ -38,6 +38,21 @@ const CircularProgressTimer = ({
 			transition: "transform 0.1s ease",
 		};
 
+		// Button reset styles when component is rendered as button
+		const buttonResetStyles = isRunning ? {
+			background: "none",
+			border: "none",
+			padding: 0,
+			margin: 0,
+			outline: "none",
+			textAlign: "inherit",
+			"&:focus-visible": {
+				outline: "2px solid",
+				outlineColor: "primary.main",
+				outlineOffset: "2px",
+			},
+		} : {};
+
 		// Determine color based on state
 		let color = "primary.main";
 		if (isRunning) {
@@ -62,6 +77,7 @@ const CircularProgressTimer = ({
 
 		return {
 			...baseStyles,
+			...buttonResetStyles,
 			color,
 			...interactiveStyles,
 		};
