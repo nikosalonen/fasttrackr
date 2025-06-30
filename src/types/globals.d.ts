@@ -7,17 +7,13 @@ interface WindowControlsOverlay extends EventTarget {
 
 interface Navigator {
 	windowControlsOverlay?: WindowControlsOverlay;
+	share?: (data: ShareData) => Promise<void>;
+	canShare?: (data: ShareData) => boolean;
 }
 
 // Service Worker types
 interface ServiceWorkerRegistration {
 	showNotification(title: string, options?: NotificationOptions): Promise<void>;
-}
-
-// Web Share API
-interface Navigator {
-	share?: (data: ShareData) => Promise<void>;
-	canShare?: (data: ShareData) => boolean;
 }
 
 interface ShareData {
