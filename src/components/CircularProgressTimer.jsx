@@ -93,19 +93,19 @@ const CircularProgressTimer = ({
 				overflow: "hidden",
 				textOverflow: "ellipsis",
 			};
-		} else {
-			// Ready state - allow wrapping and more space
-			return {
-				...baseStyles,
-				...buttonResetStyles,
-				color,
-				...interactiveStyles,
-				maxWidth: `${size * 0.9}px`, // More space for "Ready to fast?"
-				textAlign: "center",
-				wordWrap: "break-word",
-				hyphens: "auto",
-			};
 		}
+
+		// Ready state - allow wrapping and more space
+		return {
+			...baseStyles,
+			...buttonResetStyles,
+			color,
+			...interactiveStyles,
+			maxWidth: `${size * 0.9}px`, // More space for "Ready to fast?"
+			textAlign: "center",
+			wordWrap: "break-word",
+			hyphens: "auto",
+		};
 	};
 
 	// Helper function to get dynamic description for accessibility
