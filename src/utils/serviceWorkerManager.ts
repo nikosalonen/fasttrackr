@@ -1,5 +1,28 @@
 // Service Worker Update Manager
-class ServiceWorkerManager {
+
+interface ServiceWorkerCallbacks {
+	onUpdateAvailable: Array<() => void>;
+	onUpdateInstalled: Array<() => void>;
+}
+
+interface ServiceWorkerMessage {
+	type: string;
+	message?: string;
+	version?: string;
+}
+
+interface ServiceWorkerManagerOptions {
+	scope?: string;
+	scriptURL?: string;
+}
+
+type UpdateCallback = () => void;
+
+export class ServiceWorkerManager {
+	private registration: ServiceWorkerRegistration | null;
+	private updateAvailable: boolean;
+	private callbacks: ServiceWorkerCallbacks;
+
 	constructor() {
 		this.registration = null;
 		this.updateAvailable = false;
@@ -10,44 +33,48 @@ class ServiceWorkerManager {
 	}
 
 	// Initialize service worker with update handling
-	async init() {
-		if ("serviceWorker" in navigator) {
-			try {
-				this.registration = await navigator.serviceWorker.register("/sw.js", {
-					scope: "/",
-				});
-
-				console.log("Service Worker registered successfully");
-
-				// Check for updates immediately
-				await this.checkForUpdates();
-
-				// Set up update listeners
-				this.setupUpdateListeners();
-
-				// Listen for messages from service worker
-				navigator.serviceWorker.addEventListener(
-					"message",
-					this.handleSWMessage.bind(this),
-				);
-
-				return this.registration;
-			} catch (error) {
-				console.error("Service Worker registration failed:", error);
-				throw error;
-			}
-		} else {
+	async init(options: ServiceWorkerManagerOptions = {}): Promise<ServiceWorkerRegistration> {
+		if (!("serviceWorker" in navigator)) {
 			throw new Error("Service Worker not supported");
+		}
+
+		const { scope = "/", scriptURL = "/sw.js" } = options;
+
+		try {
+			this.registration = await navigator.serviceWorker.register(scriptURL, {
+				scope,
+			});
+
+			console.log("Service Worker registered successfully");
+
+			// Check for updates immediately
+			await this.checkForUpdates();
+
+			// Set up update listeners
+			this.setupUpdateListeners();
+
+			// Listen for messages from service worker
+			navigator.serviceWorker.addEventListener(
+				"message",
+				this.handleSWMessage.bind(this),
+			);
+
+			return this.registration;
+		} catch (error) {
+			console.error("Service Worker registration failed:", error);
+			throw error;
 		}
 	}
 
 	// Set up listeners for service worker updates
-	setupUpdateListeners() {
+	private setupUpdateListeners(): void {
 		if (!this.registration) return;
 
 		// Listen for new service worker installing
 		this.registration.addEventListener("updatefound", () => {
-			const newWorker = this.registration.installing;
+			const newWorker = this.registration?.installing;
+			if (!newWorker) return;
+
 			console.log("New service worker found, installing...");
 
 			newWorker.addEventListener("statechange", () => {
@@ -74,7 +101,7 @@ class ServiceWorkerManager {
 	}
 
 	// Handle messages from service worker
-	handleSWMessage(event) {
+	private handleSWMessage(event: MessageEvent<ServiceWorkerMessage>): void {
 		const { data } = event;
 
 		if (data.type === "SW_UPDATED") {
@@ -84,7 +111,7 @@ class ServiceWorkerManager {
 	}
 
 	// Check for service worker updates
-	async checkForUpdates() {
+	async checkForUpdates(): Promise<void> {
 		if (this.registration) {
 			try {
 				await this.registration.update();
@@ -96,8 +123,8 @@ class ServiceWorkerManager {
 	}
 
 	// Force apply pending updates
-	async applyUpdate() {
-		if (this.registration && this.registration.waiting) {
+	async applyUpdate(): Promise<boolean> {
+		if (this.registration?.waiting) {
 			// Tell the waiting service worker to skip waiting
 			this.registration.waiting.postMessage({ type: "SKIP_WAITING" });
 			return true;
@@ -106,7 +133,7 @@ class ServiceWorkerManager {
 	}
 
 	// Force refresh - clear caches and reload
-	async forceRefresh() {
+	async forceRefresh(): Promise<void> {
 		try {
 			// Clear all caches
 			if ("caches" in window) {
@@ -124,7 +151,7 @@ class ServiceWorkerManager {
 			}
 
 			// Force reload
-			window.location.reload(true);
+			window.location.reload();
 		} catch (error) {
 			console.error("Force refresh failed:", error);
 			// Fallback: just reload
@@ -133,38 +160,47 @@ class ServiceWorkerManager {
 	}
 
 	// Add callback for update events
-	onUpdateAvailable(callback) {
+	onUpdateAvailable(callback: UpdateCallback): void {
 		this.callbacks.onUpdateAvailable.push(callback);
 	}
 
-	onUpdateInstalled(callback) {
+	onUpdateInstalled(callback: UpdateCallback): void {
 		this.callbacks.onUpdateInstalled.push(callback);
 	}
 
 	// Notify callbacks
-	notifyUpdateAvailable() {
+	private notifyUpdateAvailable(): void {
 		this.callbacks.onUpdateAvailable.forEach((callback) => callback());
 	}
 
-	notifyUpdateInstalled() {
+	private notifyUpdateInstalled(): void {
 		this.callbacks.onUpdateInstalled.forEach((callback) => callback());
 	}
 
 	// Get current cache version
-	async getCacheVersion() {
+	async getCacheVersion(): Promise<string | null> {
 		if ("serviceWorker" in navigator && navigator.serviceWorker.controller) {
-			return new Promise((resolve) => {
+			return new Promise<string | null>((resolve) => {
 				const messageChannel = new MessageChannel();
-				messageChannel.port1.onmessage = (event) => {
-					resolve(event.data.version);
+				messageChannel.port1.onmessage = (event: MessageEvent<{ version?: string }>) => {
+					resolve(event.data.version || null);
 				};
-				navigator.serviceWorker.controller.postMessage(
+				navigator.serviceWorker.controller?.postMessage(
 					{ type: "GET_VERSION" },
 					[messageChannel.port2],
 				);
 			});
 		}
 		return null;
+	}
+
+	// Getters for read-only access to internal state
+	get isUpdateAvailable(): boolean {
+		return this.updateAvailable;
+	}
+
+	get serviceWorkerRegistration(): ServiceWorkerRegistration | null {
+		return this.registration;
 	}
 }
 
