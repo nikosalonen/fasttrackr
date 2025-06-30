@@ -5,8 +5,9 @@ import React, {
 	useEffect,
 	useState,
 } from "react";
+import type { FastTimerContextValue, FastRecord } from "../types/hooks";
 
-const FastTimerContext = createContext();
+const FastTimerContext = createContext<FastTimerContextValue | undefined>(undefined);
 
 export const useFastTimer = () => {
 	const context = useContext(FastTimerContext);
@@ -16,28 +17,33 @@ export const useFastTimer = () => {
 	return context;
 };
 
-export const FastTimerProvider = ({ children }) => {
+export const FastTimerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const [isRunning, setIsRunning] = useState(false);
-	const [startTime, setStartTime] = useState(null);
+	const [startTime, setStartTime] = useState<Date | null>(null);
 	const [targetDuration, setTargetDuration] = useState(16 * 60 * 60 * 1000); // 16 hours
-	const [currentFast, setCurrentFast] = useState(null);
+	const [currentFast, setCurrentFast] = useState<FastRecord | null>(null);
 	const [elapsedTime, setElapsedTime] = useState(0);
 
 	// Load saved fast on mount
 	useEffect(() => {
 		const savedFast = localStorage.getItem("currentFast");
 		if (savedFast) {
-			const fast = JSON.parse(savedFast);
-			setCurrentFast(fast);
-			setStartTime(new Date(fast.startTime));
-			setTargetDuration(fast.targetDuration);
-			setIsRunning(fast.isRunning);
+			try {
+				const fast = JSON.parse(savedFast) as FastRecord;
+				setCurrentFast(fast);
+				setStartTime(new Date(fast.startTime));
+				setTargetDuration(fast.targetDuration);
+				setIsRunning(fast.isRunning);
+			} catch (error) {
+				console.error("Failed to parse saved fast:", error);
+				localStorage.removeItem("currentFast");
+			}
 		}
 	}, []);
 
 	// Update elapsed time
 	useEffect(() => {
-		let interval = null;
+		let interval: NodeJS.Timeout | null = null;
 
 		if (isRunning && startTime) {
 			interval = setInterval(() => {
@@ -54,12 +60,12 @@ export const FastTimerProvider = ({ children }) => {
 		};
 	}, [isRunning, startTime]);
 
-	const startFast = useCallback((duration = null) => {
-		const targetHours = duration || 16;
+	const startFast = useCallback((duration?: number) => {
+		const targetHours = duration ?? 16;
 		const target = targetHours * 60 * 60 * 1000;
 
 		const now = new Date();
-		const fast = {
+		const fast: FastRecord = {
 			id: Date.now(),
 			startTime: now.toISOString(),
 			targetDuration: target,
@@ -76,22 +82,28 @@ export const FastTimerProvider = ({ children }) => {
 	}, []);
 
 	const stopFast = useCallback(() => {
-		if (!isRunning || !currentFast) return;
+		if (!isRunning || !currentFast || !startTime) return;
 
 		const endTime = new Date();
 		const actualDuration = endTime.getTime() - startTime.getTime();
 
 		// Save to history
-		const fastRecord = {
+		const fastRecord: FastRecord = {
 			id: currentFast.id,
 			startTime: startTime.toISOString(),
 			endTime: endTime.toISOString(),
 			targetDuration,
 			actualDuration,
 			completed: actualDuration >= targetDuration,
+			isRunning: false,
 		};
 
-		const history = JSON.parse(localStorage.getItem("fastHistory") || "[]");
+		let history: FastRecord[] = [];
+		try {
+			history = JSON.parse(localStorage.getItem("fastHistory") || "[]") as FastRecord[];
+		} catch (error) {
+			console.error("Failed to parse fast history:", error);
+		}
 		history.unshift(fastRecord);
 
 		// Keep only last 100 fasts
@@ -112,7 +124,7 @@ export const FastTimerProvider = ({ children }) => {
 	}, [isRunning, currentFast, startTime, targetDuration]);
 
 	const modifyStartTime = useCallback(
-		(newStartTime) => {
+		(newStartTime: Date) => {
 			if (!isRunning || !currentFast) return;
 
 			const updatedStartTime = new Date(newStartTime);
@@ -135,7 +147,7 @@ export const FastTimerProvider = ({ children }) => {
 		[isRunning, currentFast],
 	);
 
-	const formatTime = useCallback((milliseconds) => {
+	const formatTime = useCallback((milliseconds: number) => {
 		const totalSeconds = Math.floor(milliseconds / 1000);
 		const hours = Math.floor(totalSeconds / 3600);
 		const minutes = Math.floor((totalSeconds % 3600) / 60);

@@ -5,8 +5,9 @@ import React, {
 	useEffect,
 	useState,
 } from "react";
+import type { NotificationContextValue } from "../types/hooks";
 
-const NotificationContext = createContext();
+const NotificationContext = createContext<NotificationContextValue | undefined>(undefined);
 
 export const useNotifications = () => {
 	const context = useContext(NotificationContext);
@@ -18,8 +19,8 @@ export const useNotifications = () => {
 	return context;
 };
 
-export const NotificationProvider = ({ children }) => {
-	const [permission, setPermission] = useState("default");
+export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+	const [permission, setPermission] = useState<NotificationPermission>("default");
 	const [isEnabled, setIsEnabled] = useState(false);
 	const [milestoneNotifications, setMilestoneNotifications] = useState(true);
 
@@ -52,7 +53,7 @@ export const NotificationProvider = ({ children }) => {
 	}, [isEnabled, permission]);
 
 	const showNotification = useCallback(
-		(title, options = {}) => {
+		(title: string, options: NotificationOptions = {}) => {
 			if (!canShowNotifications()) {
 				console.log("Cannot show notification:", title);
 				return null;
@@ -86,7 +87,7 @@ export const NotificationProvider = ({ children }) => {
 	);
 
 	const showFastCompleteNotification = useCallback(
-		(duration) => {
+		(duration: number) => {
 			if (canShowNotifications()) {
 				const hours = Math.floor(duration / (1000 * 60 * 60));
 				const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
@@ -102,9 +103,9 @@ export const NotificationProvider = ({ children }) => {
 	);
 
 	const showMilestoneNotification = useCallback(
-		(hours) => {
+		(hours: number) => {
 			if (canShowNotifications() && milestoneNotifications) {
-				const milestoneMessages = {
+				const milestoneMessages: Record<number, string> = {
 					1: "Great start! 1 hour down.",
 					4: "You're doing great! 4 hours completed.",
 					8: "Halfway to 16 hours! Keep it up!",
@@ -127,12 +128,12 @@ export const NotificationProvider = ({ children }) => {
 		[canShowNotifications, milestoneNotifications, showNotification],
 	);
 
-	const toggleNotifications = useCallback(async (enabled) => {
+	const toggleNotifications = useCallback(async (enabled: boolean) => {
 		setIsEnabled(enabled);
 		localStorage.setItem("notificationsEnabled", enabled.toString());
 	}, []);
 
-	const toggleMilestoneNotifications = useCallback((enabled) => {
+	const toggleMilestoneNotifications = useCallback((enabled: boolean) => {
 		setMilestoneNotifications(enabled);
 		localStorage.setItem("milestoneNotifications", enabled.toString());
 	}, []);

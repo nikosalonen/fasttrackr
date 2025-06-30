@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
+import type { WindowControlsOverlayHook } from "../types/hooks";
 
 /**
  * Hook to detect and manage Window Controls Overlay API
- * @returns {Object} WCO state and utilities
  */
-export const useWindowControlsOverlay = () => {
+export const useWindowControlsOverlay = (): WindowControlsOverlayHook => {
 	const [isSupported, setIsSupported] = useState(false);
 	const [isActive, setIsActive] = useState(false);
 	const [titleBarAreaRect, setTitleBarAreaRect] = useState({
@@ -38,33 +38,44 @@ export const useWindowControlsOverlay = () => {
 		checkSupport();
 
 		// Listen for changes in WCO visibility
-		const handleGeometryChange = (_) => {
-			setIsActive(navigator.windowControlsOverlay.visible);
-			if (navigator.windowControlsOverlay.visible) {
-				setTitleBarAreaRect(
-					navigator.windowControlsOverlay.getTitlebarAreaRect(),
-				);
+		const handleGeometryChange = (_event: Event) => {
+			if (navigator.windowControlsOverlay) {
+				setIsActive(navigator.windowControlsOverlay.visible);
+				if (navigator.windowControlsOverlay.visible) {
+					setTitleBarAreaRect(
+						navigator.windowControlsOverlay.getTitlebarAreaRect(),
+					);
+				}
 			}
 		};
 
 		if (isSupported && navigator.windowControlsOverlay) {
-			navigator.windowControlsOverlay.addEventListener(
+			(navigator.windowControlsOverlay as any).addEventListener(
 				"geometrychange",
 				handleGeometryChange,
 			);
 
 			return () => {
-				navigator.windowControlsOverlay.removeEventListener(
-					"geometrychange",
-					handleGeometryChange,
-				);
+				if (navigator.windowControlsOverlay) {
+					(navigator.windowControlsOverlay as any).removeEventListener(
+						"geometrychange",
+						handleGeometryChange,
+					);
+				}
 			};
 		}
 	}, [isSupported]);
 
 	// Get CSS environment variables for title bar area
-	const getTitleBarAreaCSS = () => {
-		if (!isActive) return {};
+	const getTitleBarAreaCSS = (): Record<string, string> => {
+		if (!isActive) {
+			return {
+				"--titlebar-area-x": "0px",
+				"--titlebar-area-y": "0px",
+				"--titlebar-area-width": "0px",
+				"--titlebar-area-height": "0px",
+			};
+		}
 
 		return {
 			"--titlebar-area-x": `${titleBarAreaRect.x}px`,
@@ -87,7 +98,7 @@ export const useWindowControlsOverlay = () => {
 		isWindowControlsOverlayMode: isWindowControlsOverlayMode(),
 
 		// Utility functions
-		isDraggableArea: (x, y) => {
+		isDraggableArea: (x: number, y: number) => {
 			if (!isActive) return false;
 			return (
 				x >= titleBarAreaRect.x &&
