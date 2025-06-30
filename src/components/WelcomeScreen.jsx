@@ -80,13 +80,23 @@ const WelcomeScreen = ({ open, onClose }) => {
 					{/* Main Welcome Message */}
 					<Card
 						sx={{
-							bgcolor: "primary.50",
-							border: `1px solid ${theme.palette.primary.main}20`,
+							bgcolor:
+								theme.palette.mode === "dark" ? "primary.dark" : "primary.50",
+							border: `1px solid ${theme.palette.primary.main}40`,
 						}}
 					>
 						<CardContent>
-							<Typography variant="body1" sx={{ lineHeight: 1.6 }}>
-								<strong>FastTrackr is completely free and ad-free!</strong>I
+							<Typography
+								variant="body1"
+								sx={{
+									lineHeight: 1.6,
+									color:
+										theme.palette.mode === "dark"
+											? "primary.contrastText"
+											: "inherit",
+								}}
+							>
+								<strong>FastTrackr is completely free and ad-free!</strong> I
 								believe your fasting journey should be peaceful and
 								uninterrupted.
 							</Typography>
@@ -116,9 +126,9 @@ const WelcomeScreen = ({ open, onClose }) => {
 							sx={{
 								mt: 2,
 								p: 2,
-								bgcolor: "grey.50",
+								bgcolor: theme.palette.mode === "dark" ? "grey.900" : "grey.50",
 								borderRadius: 1,
-								border: `1px solid ${theme.palette.grey[200]}`,
+								border: `1px solid ${theme.palette.mode === "dark" ? theme.palette.grey[700] : theme.palette.grey[200]}`,
 							}}
 						>
 							<Typography

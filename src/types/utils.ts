@@ -41,7 +41,8 @@ export interface AppExportData {
 		settings: {
 			notificationsEnabled: string | null;
 			milestoneNotifications: string | null;
-			darkMode: string | null;
+			darkMode: string | null; // Legacy support
+			theme?: string | null; // New theme system
 		};
 	};
 }

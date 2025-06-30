@@ -41,7 +41,7 @@ const SettingsScreen = () => {
 		requestPermission,
 	} = useNotifications();
 
-	const [darkMode, setDarkMode] = useState(false);
+	const [theme, setTheme] = useState("system");
 	const [snackbarOpen, setSnackbarOpen] = useState(false);
 	const [snackbarMessage, setSnackbarMessage] = useState("");
 	const [clearDialogOpen, setClearDialogOpen] = useState(false);
@@ -49,8 +49,9 @@ const SettingsScreen = () => {
 	const [importData, setImportData] = useState("");
 
 	useEffect(() => {
-		// Load dark mode setting
-		setDarkMode(localStorage.getItem("darkMode") === "true");
+		// Load theme setting
+		const savedTheme = localStorage.getItem("theme") || "system";
+		setTheme(savedTheme);
 	}, []);
 
 	const handleNotificationToggle = async (enabled) => {
@@ -99,15 +100,22 @@ const SettingsScreen = () => {
 		);
 	};
 
-	const handleDarkModeToggle = (enabled) => {
-		setDarkMode(enabled);
-		localStorage.setItem("darkMode", enabled.toString());
-		showSnackbar(enabled ? "Dark mode enabled" : "Dark mode disabled");
+	const handleThemeChange = (selectedTheme) => {
+		setTheme(selectedTheme);
+		localStorage.setItem("theme", selectedTheme);
+
+		const themeNames = {
+			light: "Light mode",
+			dark: "Dark mode",
+			system: "System theme",
+		};
+
+		showSnackbar(`Switched to ${themeNames[selectedTheme]}`);
 
 		// Trigger theme update by dispatching custom event
 		window.dispatchEvent(
-			new CustomEvent("darkModeChanged", {
-				detail: { darkMode: enabled },
+			new CustomEvent("themeChanged", {
+				detail: { theme: selectedTheme },
 			}),
 		);
 	};
@@ -125,7 +133,7 @@ const SettingsScreen = () => {
 			const settings = {
 				notificationsEnabled: localStorage.getItem("notificationsEnabled"),
 				milestoneNotifications: localStorage.getItem("milestoneNotifications"),
-				darkMode: localStorage.getItem("darkMode"),
+				theme: localStorage.getItem("theme"),
 			};
 
 			const exportData = {
@@ -200,9 +208,9 @@ const SettingsScreen = () => {
 						data.settings.milestoneNotifications,
 					);
 				}
-				if (data.settings.darkMode !== undefined) {
-					localStorage.setItem("darkMode", data.settings.darkMode);
-					setDarkMode(data.settings.darkMode === "true");
+				if (data.settings.theme !== undefined) {
+					localStorage.setItem("theme", data.settings.theme);
+					setTheme(data.settings.theme);
 				}
 			}
 
@@ -225,7 +233,7 @@ const SettingsScreen = () => {
 		localStorage.removeItem("currentFast");
 		localStorage.removeItem("notificationsEnabled");
 		localStorage.removeItem("milestoneNotifications");
-		localStorage.removeItem("darkMode");
+		localStorage.removeItem("theme");
 
 		setClearDialogOpen(false);
 		showSnackbar("All data cleared successfully!");
@@ -329,18 +337,24 @@ const SettingsScreen = () => {
 				{/* Appearance */}
 				<SettingCard title="Appearance" icon={<DarkModeIcon color="primary" />}>
 					<Stack spacing={2}>
-						<FormControlLabel
-							control={
-								<Switch
-									checked={darkMode}
-									onChange={(e) => handleDarkModeToggle(e.target.checked)}
-								/>
-							}
-							label="Dark Mode"
-						/>
+						<FormControl fullWidth>
+							<InputLabel id="theme-select-label">Theme</InputLabel>
+							<Select
+								labelId="theme-select-label"
+								id="theme-select"
+								value={theme}
+								label="Theme"
+								onChange={(e) => handleThemeChange(e.target.value)}
+							>
+								<MenuItem value="system">System</MenuItem>
+								<MenuItem value="light">Light</MenuItem>
+								<MenuItem value="dark">Dark</MenuItem>
+							</Select>
+						</FormControl>
 
 						<Typography variant="body2" color="text.secondary">
-							Toggle between light and dark themes for better viewing comfort.
+							Choose your preferred theme. System automatically matches your
+							device's theme settings.
 						</Typography>
 					</Stack>
 				</SettingCard>

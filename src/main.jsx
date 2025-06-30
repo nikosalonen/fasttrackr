@@ -11,28 +11,58 @@ const DynamicThemeProvider = ({ children }) => {
 	const [darkMode, setDarkMode] = useState(false);
 
 	useEffect(() => {
-		// Load dark mode preference from localStorage
-		const savedDarkMode = localStorage.getItem("darkMode") === "true";
-		setDarkMode(savedDarkMode);
+		// Get theme preference from localStorage, default to "system"
+		const savedTheme = localStorage.getItem("theme") || "system";
 
-		// Listen for changes to dark mode setting
-		const handleStorageChange = (e) => {
-			if (e.key === "darkMode") {
-				setDarkMode(e.newValue === "true");
+		// Function to get system theme preference
+		const getSystemTheme = () => {
+			return window.matchMedia("(prefers-color-scheme: dark)").matches;
+		};
+
+		// Function to determine if dark mode should be active
+		const shouldUseDarkMode = (themePreference) => {
+			switch (themePreference) {
+				case "dark":
+					return true;
+				case "light":
+					return false;
+				default:
+					return getSystemTheme();
 			}
 		};
 
-		// Listen for custom dark mode change events
-		const handleDarkModeChange = (e) => {
-			setDarkMode(e.detail.darkMode);
+		// Set initial theme
+		setDarkMode(shouldUseDarkMode(savedTheme));
+
+		// Listen for system theme changes
+		const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+		const handleSystemThemeChange = () => {
+			const currentTheme = localStorage.getItem("theme") || "system";
+			if (currentTheme === "system") {
+				setDarkMode(getSystemTheme());
+			}
 		};
 
+		// Listen for storage changes (theme preference changes)
+		const handleStorageChange = (e) => {
+			if (e.key === "theme") {
+				setDarkMode(shouldUseDarkMode(e.newValue || "system"));
+			}
+		};
+
+		// Listen for custom theme change events
+		const handleThemeChange = (e) => {
+			setDarkMode(shouldUseDarkMode(e.detail.theme));
+		};
+
+		mediaQuery.addEventListener("change", handleSystemThemeChange);
 		window.addEventListener("storage", handleStorageChange);
-		window.addEventListener("darkModeChanged", handleDarkModeChange);
+		window.addEventListener("themeChanged", handleThemeChange);
 
 		return () => {
+			mediaQuery.removeEventListener("change", handleSystemThemeChange);
 			window.removeEventListener("storage", handleStorageChange);
-			window.removeEventListener("darkModeChanged", handleDarkModeChange);
+			window.removeEventListener("themeChanged", handleThemeChange);
 		};
 	}, []);
 

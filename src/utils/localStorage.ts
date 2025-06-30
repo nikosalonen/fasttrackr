@@ -94,11 +94,42 @@ export function deleteFastRecord(id: string): boolean {
 
 // Settings methods
 export function getDarkMode(): boolean {
-	return getLocalStorageBoolean(LocalStorageKeys.DARK_MODE, false);
+	// Legacy support - check if old darkMode setting exists
+	const legacyDarkModeValue = localStorage.getItem(LocalStorageKeys.DARK_MODE);
+	if (legacyDarkModeValue !== null) {
+		// Migrate from old boolean to new theme system
+		const legacyDarkMode = legacyDarkModeValue === "true";
+		const theme = legacyDarkMode ? "dark" : "light";
+		setTheme(theme);
+		localStorage.removeItem(LocalStorageKeys.DARK_MODE);
+		return legacyDarkMode;
+	}
+
+	// Use new theme system
+	const theme = getTheme();
+	return (
+		theme === "dark" ||
+		(theme === "system" &&
+			window.matchMedia("(prefers-color-scheme: dark)").matches)
+	);
 }
 
 export function setDarkMode(enabled: boolean): boolean {
-	return setLocalStorageValue(LocalStorageKeys.DARK_MODE, enabled);
+	// Legacy support - convert to new theme system
+	const theme = enabled ? "dark" : "light";
+	return setTheme(theme);
+}
+
+export function getTheme(): "light" | "dark" | "system" {
+	const theme = localStorage.getItem("theme");
+	if (theme === "light" || theme === "dark" || theme === "system") {
+		return theme;
+	}
+	return "system"; // Default to system theme
+}
+
+export function setTheme(theme: "light" | "dark" | "system"): boolean {
+	return setLocalStorageValue("theme", theme);
 }
 
 export function getNotificationsEnabled(): boolean {
@@ -203,7 +234,8 @@ export function exportAppData(): AppExportData {
 			settings: {
 				notificationsEnabled: String(getNotificationsEnabled()),
 				milestoneNotifications: String(getMilestoneNotifications()),
-				darkMode: String(getDarkMode()),
+				darkMode: String(getDarkMode()), // Legacy support
+				theme: getTheme(), // New theme system
 			},
 		},
 	};
@@ -230,8 +262,19 @@ export function importAppData(data: AppExportData): boolean {
 				data.data.settings.milestoneNotifications === "true",
 			);
 		}
-		if (data.data.settings.darkMode !== null) {
-			setDarkMode(data.data.settings.darkMode === "true");
+		// Handle both legacy darkMode and new theme settings
+		if (
+			data.data.settings.theme !== null &&
+			data.data.settings.theme !== undefined
+		) {
+			const theme = data.data.settings.theme;
+			if (theme === "light" || theme === "dark" || theme === "system") {
+				setTheme(theme);
+			}
+		} else if (data.data.settings.darkMode !== null) {
+			// Legacy support for old darkMode exports
+			const theme = data.data.settings.darkMode === "true" ? "dark" : "light";
+			setTheme(theme);
 		}
 
 		return true;
