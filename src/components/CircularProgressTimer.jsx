@@ -221,9 +221,12 @@ const CircularProgressTimer = ({
 				>
 					<Typography
 						variant="h2"
-						component="div"
+						component={isRunning ? "button" : "div"}
 						onClick={onTimeToggle}
 						sx={getTimerDisplayStyles(isRunning, progress, completed)}
+						role={isRunning ? "button" : undefined}
+						aria-label={isRunning ? `Timer display: ${displayTime}. Click to toggle between elapsed time and remaining time.` : undefined}
+						tabIndex={isRunning ? 0 : -1}
 					>
 						{displayTime}
 					</Typography>
@@ -239,7 +242,26 @@ const CircularProgressTimer = ({
 							}}
 						>
 							{timeLabel}
-							{isRunning && " • Click to toggle"}
+							{/* Accessible toggle instruction */}
+							<span>
+								{" • "}
+								<span
+									style={{
+										position: "absolute",
+										width: "1px",
+										height: "1px",
+										padding: 0,
+										margin: "-1px",
+										overflow: "hidden",
+										clip: "rect(0, 0, 0, 0)",
+										whiteSpace: "nowrap",
+										border: 0,
+									}}
+								>
+									Press timer to toggle between elapsed and remaining time.
+								</span>
+								<span aria-hidden="true">Click to toggle</span>
+							</span>
 						</Typography>
 					)}
 
