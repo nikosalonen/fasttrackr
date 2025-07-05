@@ -66,6 +66,12 @@ const TimerScreen = () => {
 	const [showStartTimeSection, setShowStartTimeSection] = useState(false);
 	const [isEditingStartTime, setIsEditingStartTime] = useState(false);
 	const [tempStartTime, setTempStartTime] = useState("");
+	const [lastFastDuration, setLastFastDuration] = useState(() => {
+		const history = JSON.parse(localStorage.getItem("fastHistory") || "[]");
+		return history.length > 0
+			? Math.floor(history[0].targetDuration / (1000 * 60 * 60))
+			: null;
+	});
 
 	const progress = getProgress();
 	const completed = isCompleted();
@@ -84,6 +90,13 @@ const TimerScreen = () => {
 			return;
 		}
 		startFast(duration);
+		setLastFastDuration(duration);
+	};
+
+	const handleQuickRestart = () => {
+		if (lastFastDuration) {
+			startFast(lastFastDuration);
+		}
 	};
 
 	const handleStopClick = () => {
@@ -91,7 +104,12 @@ const TimerScreen = () => {
 	};
 
 	const handleConfirmStop = () => {
-		stopFast();
+		const stoppedFast = stopFast();
+		if (stoppedFast) {
+			setLastFastDuration(
+				Math.floor(stoppedFast.targetDuration / (1000 * 60 * 60)),
+			);
+		}
 		setShowStopConfirmation(false);
 	};
 
@@ -135,6 +153,16 @@ const TimerScreen = () => {
 		// If fast is completed, always show elapsed
 		if (completed) return "Elapsed";
 		return showRemainingTime ? "Remaining" : "Elapsed";
+	};
+
+	const getEstimatedEndTime = () => {
+		if (!isRunning || !startTime) return "";
+		const endTime = new Date(startTime.getTime() + targetDuration);
+		return endTime.toLocaleString(undefined, {
+			hour: "2-digit",
+			minute: "2-digit",
+			hour12: true,
+		});
 	};
 
 	const handleEditStartTime = () => {
@@ -194,6 +222,15 @@ const TimerScreen = () => {
 						onTimeToggle={handleTimeDisplayToggle}
 						targetHours={targetHours}
 					/>
+
+					{/* Estimated End Time */}
+					{isRunning && (
+						<Box sx={{ textAlign: "center", pb: 2 }}>
+							<Typography variant="caption" color="text.secondary">
+								Ends at {getEstimatedEndTime()}
+							</Typography>
+						</Box>
+					)}
 				</Card>
 
 				{/* Start Time Section */}
@@ -308,15 +345,30 @@ const TimerScreen = () => {
 							sx={{ mb: 3 }}
 						>
 							{!isRunning ? (
-								<Button
-									variant="contained"
-									size="large"
-									startIcon={<PlayIcon />}
-									onClick={handleStart}
-									sx={{ minWidth: 140 }}
-								>
-									Start Fast
-								</Button>
+								<>
+									<Button
+										variant="contained"
+										size="large"
+										startIcon={<PlayIcon />}
+										onClick={handleStart}
+										sx={{ minWidth: 140 }}
+									>
+										Start Fast
+									</Button>
+
+									{/* Quick Restart Button */}
+									{lastFastDuration && (
+										<Button
+											variant="outlined"
+											size="large"
+											startIcon={<PlayIcon />}
+											onClick={handleQuickRestart}
+											sx={{ minWidth: 140 }}
+										>
+											Restart {lastFastDuration}h
+										</Button>
+									)}
+								</>
 							) : (
 								<Button
 									variant="contained"
