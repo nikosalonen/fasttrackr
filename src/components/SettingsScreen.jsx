@@ -819,6 +819,22 @@ const SettingsScreen = () => {
 							Force Refresh App
 						</Button>
 
+						{/* Debug: Reset Install Prompt */}
+						{import.meta.env.DEV && (
+							<Button
+								variant="outlined"
+								color="info"
+								onClick={() => {
+									localStorage.removeItem("appLaunchCount");
+									localStorage.removeItem("installPromptNeverShow");
+									showSnackbar("Install prompt settings reset (dev mode)");
+								}}
+								fullWidth
+							>
+								Reset Install Prompt (Dev)
+							</Button>
+						)}
+
 						<Typography variant="body2" color="text.secondary">
 							Check for updates manually or force refresh to clear all cached
 							data and reload the latest version.

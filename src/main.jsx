@@ -126,8 +126,29 @@ const initializePWA = async () => {
 	}
 };
 
+// Track app launches for install prompt timing
+const trackAppLaunch = () => {
+	// Only track if not already installed
+	const isInstalled =
+		window.matchMedia("(display-mode: standalone)").matches ||
+		window.navigator.standalone ||
+		localStorage.getItem("appInstalled") === "true";
+
+	if (!isInstalled) {
+		const currentCount = parseInt(
+			localStorage.getItem("appLaunchCount") || "0",
+		);
+		const newCount = currentCount + 1;
+		localStorage.setItem("appLaunchCount", newCount.toString());
+		console.log(`App launch count: ${newCount}`);
+	}
+};
+
 // Initialize PWA when the app starts
 initializePWA();
+
+// Track app launch for install prompt timing
+trackAppLaunch();
 
 ReactDOM.createRoot(document.getElementById("root")).render(
 	<React.StrictMode>

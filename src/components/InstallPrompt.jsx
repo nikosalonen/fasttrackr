@@ -2,10 +2,12 @@ import { Close as CloseIcon, GetApp as InstallIcon } from "@mui/icons-material";
 import {
 	Box,
 	Button,
+	Checkbox,
 	Dialog,
 	DialogActions,
 	DialogContent,
 	DialogTitle,
+	FormControlLabel,
 	IconButton,
 	Typography,
 	useMediaQuery,
@@ -19,6 +21,7 @@ const InstallPrompt = () => {
 	const [deferredPrompt, setDeferredPrompt] = useState(null);
 	const [showPrompt, setShowPrompt] = useState(false);
 	const [isInstalled, setIsInstalled] = useState(false);
+	const [neverShowAgain, setNeverShowAgain] = useState(false);
 
 	useEffect(() => {
 		// Check if already installed
@@ -32,25 +35,43 @@ const InstallPrompt = () => {
 			}
 		};
 
+		// Check if user has opted to never show the prompt again
+		const checkNeverShowAgain = () => {
+			return localStorage.getItem("installPromptNeverShow") === "true";
+		};
+
+		// Determine if we should show the prompt based on current launch count
+		const shouldShowPrompt = () => {
+			if (checkNeverShowAgain()) {
+				return false;
+			}
+
+			// Get current launch count (already tracked in main.jsx)
+			const launchCount = parseInt(
+				localStorage.getItem("appLaunchCount") || "0",
+			);
+
+			// Show on 5th launch, then every 10th launch after that
+			if (launchCount === 5) {
+				return true;
+			} else if (launchCount > 5 && (launchCount - 5) % 10 === 0) {
+				return true;
+			}
+
+			return false;
+		};
+
 		// Listen for beforeinstallprompt event
 		const handleBeforeInstallPrompt = (e) => {
 			e.preventDefault();
 			setDeferredPrompt(e);
 
-			// Show prompt after a delay (don't be too aggressive)
+			// Show prompt after a delay if conditions are met
 			setTimeout(() => {
-				const hasBeenPrompted = localStorage.getItem("installPromptShown");
-				const lastPrompted = localStorage.getItem("lastInstallPrompt");
-				const now = Date.now();
-				const oneDayAgo = now - 24 * 60 * 60 * 1000;
-
-				if (
-					!hasBeenPrompted ||
-					(lastPrompted && parseInt(lastPrompted) < oneDayAgo)
-				) {
+				if (shouldShowPrompt()) {
 					setShowPrompt(true);
 				}
-			}, 10000); // Show after 10 seconds
+			}, 3000); // Show after 3 seconds to not be too aggressive
 		};
 
 		// Listen for app installation
@@ -98,8 +119,11 @@ const InstallPrompt = () => {
 
 		setDeferredPrompt(null);
 		setShowPrompt(false);
-		localStorage.setItem("installPromptShown", "true");
-		localStorage.setItem("lastInstallPrompt", Date.now().toString());
+
+		// Save "never show again" preference if checked
+		if (neverShowAgain) {
+			localStorage.setItem("installPromptNeverShow", "true");
+		}
 	};
 
 	const showInstallInstructions = () => {
@@ -125,8 +149,11 @@ const InstallPrompt = () => {
 
 	const handleDismiss = () => {
 		setShowPrompt(false);
-		localStorage.setItem("installPromptShown", "true");
-		localStorage.setItem("lastInstallPrompt", Date.now().toString());
+
+		// Save "never show again" preference if checked
+		if (neverShowAgain) {
+			localStorage.setItem("installPromptNeverShow", "true");
+		}
 	};
 
 	// Don't show if already installed or no prompt available
@@ -185,11 +212,26 @@ const InstallPrompt = () => {
 					<Typography
 						variant="body2"
 						color="text.secondary"
-						sx={{ fontStyle: "italic" }}
+						sx={{ fontStyle: "italic", mb: 2 }}
 					>
 						Perfect for tracking your fasts on the go! 📱
 					</Typography>
 				)}
+
+				<FormControlLabel
+					control={
+						<Checkbox
+							checked={neverShowAgain}
+							onChange={(e) => setNeverShowAgain(e.target.checked)}
+							size="small"
+						/>
+					}
+					label={
+						<Typography variant="body2" color="text.secondary">
+							Don't show this again
+						</Typography>
+					}
+				/>
 			</DialogContent>
 
 			<DialogActions sx={{ px: 3, pb: 3 }}>
