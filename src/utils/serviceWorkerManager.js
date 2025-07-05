@@ -6,7 +6,27 @@ let swRegistration = null;
 export const registerServiceWorker = async () => {
 	if ("serviceWorker" in navigator) {
 		try {
-			wb = new Workbox("/sw.js");
+			// Check if we're in development mode and service worker exists
+			const isDev = import.meta.env.DEV;
+			const swPath = isDev ? "/dev-sw.js?dev-sw" : "/sw.js";
+
+			// Test if service worker file exists before registering
+			try {
+				const response = await fetch(swPath, { method: "HEAD" });
+				if (!response.ok) {
+					console.log(
+						"Service Worker file not found, skipping registration in development",
+					);
+					return null;
+				}
+			} catch (fetchError) {
+				console.log(
+					"Service Worker file not accessible, skipping registration",
+				);
+				return null;
+			}
+
+			wb = new Workbox(swPath);
 
 			wb.addEventListener("waiting", (_event) => {
 				console.log("Service Worker: New version waiting");
@@ -47,6 +67,13 @@ export const registerServiceWorker = async () => {
 			return swRegistration;
 		} catch (error) {
 			console.error("Service Worker registration failed:", error);
+			// In development, this is not critical, so we don't throw
+			if (import.meta.env.DEV) {
+				console.log(
+					"Service Worker registration failed in development mode - this is normal",
+				);
+				return null;
+			}
 			return null;
 		}
 	} else {
@@ -87,7 +114,10 @@ export const unregisterServiceWorker = async () => {
 
 // Background sync registration
 export const registerBackgroundSync = async (tag, _data) => {
-	if ("serviceWorker" in navigator && "sync" in window.ServiceWorkerRegistration.prototype) {
+	if (
+		"serviceWorker" in navigator &&
+		"sync" in window.ServiceWorkerRegistration.prototype
+	) {
 		try {
 			const registration = await navigator.serviceWorker.ready;
 			await registration.sync.register(tag);
@@ -109,7 +139,7 @@ export const registerPushNotifications = async () => {
 				const subscription = await registration.pushManager.subscribe({
 					userVisibleOnly: true,
 					applicationServerKey: urlBase64ToUint8Array(
-						"YOUR_VAPID_PUBLIC_KEY" // Replace with your VAPID public key
+						"YOUR_VAPID_PUBLIC_KEY", // Replace with your VAPID public key
 					),
 				});
 				console.log("Push notification subscription:", subscription);
@@ -125,9 +155,7 @@ export const registerPushNotifications = async () => {
 // Utility function to convert VAPID key
 const urlBase64ToUint8Array = (base64String) => {
 	const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-	const base64 = (base64String + padding)
-		.replace(/-/g, "+")
-		.replace(/_/g, "/");
+	const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
 
 	const rawData = window.atob(base64);
 	const outputArray = new Uint8Array(rawData.length);
