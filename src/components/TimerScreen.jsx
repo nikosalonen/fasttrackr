@@ -382,11 +382,26 @@ const TimerScreen = () => {
 	const getEstimatedEndTime = () => {
 		if (!isRunning || !startTime) return "";
 		const endTime = new Date(startTime.getTime() + targetDuration);
-		return endTime.toLocaleString(undefined, {
-			hour: "2-digit",
-			minute: "2-digit",
-			hour12: use12HourClock,
-		});
+		const today = new Date();
+		const isToday = endTime.toDateString() === today.toDateString();
+
+		// If the fast ends today, show only time. If it ends on a different day, include the date
+		if (isToday) {
+			return endTime.toLocaleString(undefined, {
+				hour: "2-digit",
+				minute: "2-digit",
+				hour12: use12HourClock,
+			});
+		} else {
+			return endTime.toLocaleString(undefined, {
+				weekday: "short",
+				month: "short",
+				day: "numeric",
+				hour: "2-digit",
+				minute: "2-digit",
+				hour12: use12HourClock,
+			});
+		}
 	};
 
 	const handleEditStartTime = () => {
