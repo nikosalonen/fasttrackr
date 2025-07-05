@@ -60,13 +60,21 @@ const CircularProgressTimer = ({
 				}
 			: {};
 
-		// Determine color based on state
+		// Determine color based on state - use same logic as progress ring
 		let color = "primary.main";
 		if (isRunning) {
 			if (progress > 100) {
 				color = "warning.main";
 			} else if (completed) {
 				color = "success.main";
+			} else if (progress >= 75) {
+				color = "success.main";
+			} else if (progress >= 50) {
+				color = "warning.main";
+			} else if (progress >= 25) {
+				color = "secondary.main";
+			} else {
+				color = "primary.main";
 			}
 		}
 
@@ -145,7 +153,16 @@ const CircularProgressTimer = ({
 			return theme.palette.success.main;
 		}
 
-		return theme.palette.primary.main;
+		// Color stages based on progress
+		if (progress >= 75) {
+			return theme.palette.success.main; // Green for final stretch
+		} else if (progress >= 50) {
+			return theme.palette.warning.main; // Orange for halfway
+		} else if (progress >= 25) {
+			return theme.palette.secondary.main; // Secondary color for building momentum
+		} else {
+			return theme.palette.primary.main; // Primary blue for start
+		}
 	};
 
 	// Helper function to get accessible chip content and label
@@ -183,11 +200,38 @@ const CircularProgressTimer = ({
 		return { x, y };
 	};
 
-	// Milestone data with positions and labels
+	// Helper function to get milestone color based on progress
+	const getMilestoneColor = (milestonePercentage, currentProgress) => {
+		if (currentProgress >= milestonePercentage) {
+			// Use the same color logic as the progress ring
+			if (milestonePercentage >= 75) {
+				return theme.palette.success.main;
+			} else if (milestonePercentage >= 50) {
+				return theme.palette.warning.main;
+			} else if (milestonePercentage >= 25) {
+				return theme.palette.secondary.main;
+			}
+		}
+		return theme.palette.grey[400]; // Default inactive color
+	};
+
+	// Milestone data with dynamic colors
 	const milestones = [
-		{ percentage: 25, label: "25%", color: theme.palette.grey[400] },
-		{ percentage: 50, label: "50%", color: theme.palette.grey[400] },
-		{ percentage: 75, label: "75%", color: theme.palette.grey[400] },
+		{
+			percentage: 25,
+			label: "25%",
+			color: getMilestoneColor(25, progress),
+		},
+		{
+			percentage: 50,
+			label: "50%",
+			color: getMilestoneColor(50, progress),
+		},
+		{
+			percentage: 75,
+			label: "75%",
+			color: getMilestoneColor(75, progress),
+		},
 	];
 
 	return (
@@ -252,19 +296,25 @@ const CircularProgressTimer = ({
 							const isActive =
 								progress >= milestone.percentage - 5 &&
 								progress <= milestone.percentage + 5;
+							const isApproaching =
+								progress >= milestone.percentage - 10 &&
+								progress < milestone.percentage;
 
 							return (
 								<circle
 									key={milestone.percentage}
 									cx={position.x}
 									cy={position.y}
-									r={isActive ? 6 : 4}
-									fill={isPassed ? theme.palette.primary.main : milestone.color}
+									r={isActive ? 7 : isApproaching ? 5 : 4}
+									fill={isPassed ? milestone.color : theme.palette.grey[300]}
 									stroke={theme.palette.background.paper}
 									strokeWidth={2}
 									style={{
-										transition: "all 0.3s ease",
-										opacity: isActive ? 1 : 0.7,
+										transition: "all 0.4s ease",
+										opacity: isPassed ? 1 : isApproaching ? 0.8 : 0.6,
+										filter: isPassed
+											? "drop-shadow(0 0 3px rgba(0,0,0,0.3))"
+											: "none",
 									}}
 								/>
 							);
@@ -372,8 +422,22 @@ const CircularProgressTimer = ({
 					{isRunning && (
 						<Typography
 							variant="body2"
-							color="text.secondary"
-							sx={{ mt: 1, fontSize: "0.8rem" }}
+							sx={{
+								mt: 1,
+								fontSize: "0.8rem",
+								color:
+									progress > 100
+										? "warning.main"
+										: completed
+											? "success.main"
+											: progress >= 75
+												? "success.main"
+												: progress >= 50
+													? "warning.main"
+													: progress >= 25
+														? "secondary.main"
+														: "primary.main",
+							}}
 						>
 							{getStatusText()}
 						</Typography>
