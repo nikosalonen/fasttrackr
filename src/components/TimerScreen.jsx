@@ -742,19 +742,21 @@ const TimerScreen = () => {
 										</Fade>
 									)}
 
-									{/* Save Current as Template Button */}
-									<Box
-										sx={{ display: "flex", justifyContent: "center", mt: 2 }}
-									>
-										<Button
-											variant="outlined"
-											startIcon={<StarIcon />}
-											onClick={saveCurrentAsTemplate}
-											size="small"
+									{/* Save Current as Template Button - Only for custom durations */}
+									{showCustomInput && (
+										<Box
+											sx={{ display: "flex", justifyContent: "center", mt: 2 }}
 										>
-											Save as Template
-										</Button>
-									</Box>
+											<Button
+												variant="outlined"
+												startIcon={<StarIcon />}
+												onClick={saveCurrentAsTemplate}
+												size="small"
+											>
+												Save as Template
+											</Button>
+										</Box>
+									)}
 
 									{/* Template Selection */}
 									{templates.length > 0 && (
