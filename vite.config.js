@@ -37,11 +37,7 @@ export default defineConfig({
 				clientsClaim: true,
 				cleanupOutdatedCaches: true,
 			},
-			includeAssets: [
-				"favicon.ico",
-				"apple-touch-icon.png",
-				"masked-icon.svg",
-			],
+			includeAssets: ["favicon.ico", "apple-touch-icon.png", "masked-icon.svg"],
 			manifest: {
 				name: "FastTrackr",
 				short_name: "FastTrackr",
@@ -97,6 +93,7 @@ export default defineConfig({
 			devOptions: {
 				enabled: true,
 				type: "module",
+				navigateFallback: "index.html",
 			},
 		}),
 	],
