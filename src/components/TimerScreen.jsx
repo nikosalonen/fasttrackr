@@ -1,5 +1,4 @@
 import {
-	Add as AddIcon,
 	Cancel as CancelIcon,
 	Delete as DeleteIcon,
 	Edit as EditIcon,
@@ -7,10 +6,11 @@ import {
 	PlayArrow as PlayIcon,
 	Save as SaveIcon,
 	Schedule as ScheduleIcon,
-	Stop as StopIcon,
 	Star as StarIcon,
+	Stop as StopIcon,
 } from "@mui/icons-material";
 import {
+	Alert,
 	Box,
 	Button,
 	Card,
@@ -28,7 +28,6 @@ import {
 	MenuItem,
 	Select,
 	Snackbar,
-	Alert,
 	Stack,
 	TextField,
 	Typography,
@@ -452,7 +451,7 @@ const TimerScreen = () => {
 		[templates],
 	);
 
-	const useTemplate = useCallback((template) => {
+	const applyTemplate = useCallback((template) => {
 		const standardDurations = [12, 16, 18, 20, 24];
 		const isStandardDuration = standardDurations.includes(template.duration);
 
@@ -766,7 +765,7 @@ const TimerScreen = () => {
 														<Stack direction="row" spacing={1}>
 															<Button
 																size="small"
-																onClick={() => useTemplate(template)}
+																onClick={() => applyTemplate(template)}
 																variant="outlined"
 															>
 																Use
