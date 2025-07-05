@@ -4,6 +4,7 @@ import {
 	DarkMode as DarkModeIcon,
 	Delete as DeleteIcon,
 	Download as ExportIcon,
+	Flag as GoalIcon,
 	Upload as ImportIcon,
 	Info as InfoIcon,
 	Notifications as NotificationIcon,
@@ -23,6 +24,7 @@ import {
 	DialogTitle,
 	Divider,
 	FormControlLabel,
+	IconButton,
 	Snackbar,
 	Stack,
 	Switch,
@@ -31,6 +33,7 @@ import {
 } from "@mui/material";
 import React, { useCallback, useEffect, useState } from "react";
 import { useNotifications } from "../hooks/useNotifications";
+import GoalSettings from "./GoalSettings";
 import SupportDeveloper from "./SupportDeveloper";
 import { updateUtils } from "./UpdateNotification";
 
@@ -68,6 +71,7 @@ const SettingsScreen = () => {
 		return localStorage.getItem("use12HourClock") !== "false";
 	});
 	const [quietHoursStatus, setQuietHoursStatus] = useState("");
+	const [showGoalSettings, setShowGoalSettings] = useState(false);
 
 	useEffect(() => {
 		// Load dark mode setting
@@ -639,6 +643,25 @@ const SettingsScreen = () => {
 					</Stack>
 				</SettingCard>
 
+				{/* Goals */}
+				<SettingCard title="Goals" icon={<GoalIcon color="primary" />}>
+					<Stack spacing={2}>
+						<Button
+							variant="outlined"
+							startIcon={<GoalIcon />}
+							onClick={() => setShowGoalSettings(true)}
+							fullWidth
+						>
+							Manage Fasting Goals
+						</Button>
+
+						<Typography variant="body2" color="text.secondary">
+							Set personal fasting goals to stay motivated and track your
+							progress over time.
+						</Typography>
+					</Stack>
+				</SettingCard>
+
 				{/* Support Developer */}
 				<SupportDeveloper />
 
@@ -788,6 +811,38 @@ const SettingsScreen = () => {
 						Import
 					</Button>
 				</DialogActions>
+			</Dialog>
+
+			{/* Goal Settings Dialog */}
+			<Dialog
+				open={showGoalSettings}
+				onClose={() => setShowGoalSettings(false)}
+				maxWidth="lg"
+				fullWidth
+				PaperProps={{
+					sx: {
+						height: "90vh",
+						maxHeight: "90vh",
+					},
+				}}
+			>
+				<DialogTitle>
+					<Box
+						sx={{
+							display: "flex",
+							justifyContent: "space-between",
+							alignItems: "center",
+						}}
+					>
+						<Typography variant="h6">Fasting Goals</Typography>
+						<IconButton onClick={() => setShowGoalSettings(false)}>
+							<CloseIcon />
+						</IconButton>
+					</Box>
+				</DialogTitle>
+				<DialogContent sx={{ p: 0 }}>
+					<GoalSettings />
+				</DialogContent>
 			</Dialog>
 
 			{/* Snackbar for notifications */}
