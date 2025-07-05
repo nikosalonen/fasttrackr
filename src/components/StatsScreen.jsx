@@ -1,9 +1,9 @@
 import {
 	Whatshot as StreakIcon,
 	Timer as TimerIcon,
-	TrendingUp as TrendingIcon,
 	TrendingDown as TrendingDownIcon,
 	TrendingFlat as TrendingFlatIcon,
+	TrendingUp as TrendingIcon,
 	EmojiEvents as TrophyIcon,
 } from "@mui/icons-material";
 import {
