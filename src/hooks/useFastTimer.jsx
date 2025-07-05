@@ -75,41 +75,45 @@ export const FastTimerProvider = ({ children }) => {
 		localStorage.setItem("currentFast", JSON.stringify(fast));
 	}, []);
 
-	const stopFast = useCallback(() => {
-		if (!isRunning || !currentFast) return;
+	const stopFast = useCallback(
+		(note = "") => {
+			if (!isRunning || !currentFast) return;
 
-		const endTime = new Date();
-		const actualDuration = endTime.getTime() - startTime.getTime();
+			const endTime = new Date();
+			const actualDuration = endTime.getTime() - startTime.getTime();
 
-		// Save to history
-		const fastRecord = {
-			id: currentFast.id,
-			startTime: startTime.toISOString(),
-			endTime: endTime.toISOString(),
-			targetDuration,
-			actualDuration,
-			completed: actualDuration >= targetDuration,
-		};
+			// Save to history
+			const fastRecord = {
+				id: currentFast.id,
+				startTime: startTime.toISOString(),
+				endTime: endTime.toISOString(),
+				targetDuration,
+				actualDuration,
+				completed: actualDuration >= targetDuration,
+				note: note.trim(),
+			};
 
-		const history = JSON.parse(localStorage.getItem("fastHistory") || "[]");
-		history.unshift(fastRecord);
+			const history = JSON.parse(localStorage.getItem("fastHistory") || "[]");
+			history.unshift(fastRecord);
 
-		// Keep only last 100 fasts
-		if (history.length > 100) {
-			history.splice(100);
-		}
+			// Keep only last 100 fasts
+			if (history.length > 100) {
+				history.splice(100);
+			}
 
-		localStorage.setItem("fastHistory", JSON.stringify(history));
+			localStorage.setItem("fastHistory", JSON.stringify(history));
 
-		// Clear current fast
-		setIsRunning(false);
-		setCurrentFast(null);
-		setElapsedTime(0);
+			// Clear current fast
+			setIsRunning(false);
+			setCurrentFast(null);
+			setElapsedTime(0);
 
-		localStorage.removeItem("currentFast");
+			localStorage.removeItem("currentFast");
 
-		return fastRecord;
-	}, [isRunning, currentFast, startTime, targetDuration]);
+			return fastRecord;
+		},
+		[isRunning, currentFast, startTime, targetDuration],
+	);
 
 	const modifyStartTime = useCallback(
 		(newStartTime) => {
@@ -153,6 +157,19 @@ export const FastTimerProvider = ({ children }) => {
 		return elapsedTime >= targetDuration;
 	}, [elapsedTime, targetDuration]);
 
+	// Add function to update existing fast notes
+	const updateFastNote = useCallback((fastId, note) => {
+		const history = JSON.parse(localStorage.getItem("fastHistory") || "[]");
+		const updatedHistory = history.map((fast) => {
+			if (fast.id === fastId) {
+				return { ...fast, note: note.trim() };
+			}
+			return fast;
+		});
+		localStorage.setItem("fastHistory", JSON.stringify(updatedHistory));
+		return updatedHistory;
+	}, []);
+
 	const value = {
 		// State
 		isRunning,
@@ -165,6 +182,7 @@ export const FastTimerProvider = ({ children }) => {
 		startFast,
 		stopFast,
 		modifyStartTime,
+		updateFastNote,
 
 		// Computed
 		formatTime,

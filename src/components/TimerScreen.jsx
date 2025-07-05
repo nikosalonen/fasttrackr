@@ -70,6 +70,8 @@ const TimerScreen = () => {
 		return localStorage.getItem("showCustomInput") === "true";
 	});
 	const [showStopConfirmation, setShowStopConfirmation] = useState(false);
+	const [showNotesDialog, setShowNotesDialog] = useState(false);
+	const [fastNote, setFastNote] = useState("");
 	const [showRemainingTime, setShowRemainingTime] = useState(false);
 	const [showStartTimeSection, setShowStartTimeSection] = useState(false);
 	const [isEditingStartTime, setIsEditingStartTime] = useState(false);
@@ -309,13 +311,25 @@ const TimerScreen = () => {
 	};
 
 	const handleConfirmStop = () => {
-		const stoppedFast = stopFast();
+		// Show notes dialog instead of immediately stopping
+		setShowStopConfirmation(false);
+		setShowNotesDialog(true);
+	};
+
+	const handleFinalStop = () => {
+		const stoppedFast = stopFast(fastNote);
 		if (stoppedFast) {
 			setLastFastDuration(
 				Math.floor(stoppedFast.targetDuration / (1000 * 60 * 60)),
 			);
 		}
-		setShowStopConfirmation(false);
+		setShowNotesDialog(false);
+		setFastNote("");
+	};
+
+	const handleCancelNotes = () => {
+		setShowNotesDialog(false);
+		setFastNote("");
 	};
 
 	const handleCancelStop = () => {
@@ -835,6 +849,41 @@ const TimerScreen = () => {
 							variant="contained"
 						>
 							Stop Fast
+						</Button>
+					</DialogActions>
+				</Dialog>
+
+				{/* Notes Dialog */}
+				<Dialog
+					open={showNotesDialog}
+					onClose={handleCancelNotes}
+					aria-labelledby="notes-dialog-title"
+					aria-describedby="notes-dialog-description"
+				>
+					<DialogTitle id="notes-dialog-title">Fast Notes</DialogTitle>
+					<DialogContent>
+						<DialogContentText id="notes-dialog-description">
+							Please provide a note for your fast:
+						</DialogContentText>
+						<TextField
+							label="Note"
+							multiline
+							rows={4}
+							value={fastNote}
+							onChange={(e) => setFastNote(e.target.value)}
+							fullWidth
+						/>
+					</DialogContent>
+					<DialogActions>
+						<Button onClick={handleCancelNotes} color="primary">
+							Cancel
+						</Button>
+						<Button
+							onClick={handleFinalStop}
+							color="primary"
+							variant="contained"
+						>
+							Save
 						</Button>
 					</DialogActions>
 				</Dialog>

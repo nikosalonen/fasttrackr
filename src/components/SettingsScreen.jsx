@@ -23,8 +23,12 @@ import {
 	DialogContent,
 	DialogTitle,
 	Divider,
+	FormControl,
 	FormControlLabel,
 	IconButton,
+	InputLabel,
+	MenuItem,
+	Select,
 	Snackbar,
 	Stack,
 	Switch,
@@ -69,6 +73,9 @@ const SettingsScreen = () => {
 	});
 	const [use12HourClock, setUse12HourClock] = useState(() => {
 		return localStorage.getItem("use12HourClock") !== "false";
+	});
+	const [firstDayOfWeek, setFirstDayOfWeek] = useState(() => {
+		return localStorage.getItem("firstDayOfWeek") || "sunday";
 	});
 	const [quietHoursStatus, setQuietHoursStatus] = useState("");
 	const [showGoalSettings, setShowGoalSettings] = useState(false);
@@ -144,6 +151,12 @@ const SettingsScreen = () => {
 		setUse12HourClock(enabled);
 		localStorage.setItem("use12HourClock", enabled.toString());
 		showSnackbar(enabled ? "12-hour clock enabled" : "24-hour clock enabled");
+	};
+
+	const handleFirstDayOfWeekChange = (day) => {
+		setFirstDayOfWeek(day);
+		localStorage.setItem("firstDayOfWeek", day);
+		showSnackbar(`Week starts on ${day === "sunday" ? "Sunday" : "Monday"}`);
 	};
 
 	const addCustomMilestone = () => {
@@ -635,6 +648,22 @@ const SettingsScreen = () => {
 							}
 							label="12-Hour Clock"
 						/>
+
+						<FormControl>
+							<InputLabel id="first-day-of-week-label">
+								Week starts on
+							</InputLabel>
+							<Select
+								labelId="first-day-of-week-label"
+								id="first-day-of-week"
+								value={firstDayOfWeek}
+								onChange={(e) => handleFirstDayOfWeekChange(e.target.value)}
+								label="First Day of Week"
+							>
+								<MenuItem value="sunday">Sunday</MenuItem>
+								<MenuItem value="monday">Monday</MenuItem>
+							</Select>
+						</FormControl>
 
 						<Typography variant="body2" color="text.secondary">
 							Toggle between light and dark themes for better viewing comfort.

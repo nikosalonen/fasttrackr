@@ -26,11 +26,29 @@ const CalendarView = () => {
 	const { isRunning, startTime } = useFastTimer();
 	const [currentDate, setCurrentDate] = useState(dayjs());
 	const [fasts, setFasts] = useState([]);
+	const [firstDayOfWeek, setFirstDayOfWeek] = useState(() => {
+		return localStorage.getItem("firstDayOfWeek") || "sunday";
+	});
 
 	// Load fasting history
 	useEffect(() => {
 		const history = JSON.parse(localStorage.getItem("fastHistory") || "[]");
 		setFasts(history);
+	}, []);
+
+	// Listen for changes to first day of week setting
+	useEffect(() => {
+		const handleStorageChange = (e) => {
+			if (e.key === "firstDayOfWeek") {
+				setFirstDayOfWeek(e.newValue || "sunday");
+			}
+		};
+
+		window.addEventListener("storage", handleStorageChange);
+
+		return () => {
+			window.removeEventListener("storage", handleStorageChange);
+		};
 	}, []);
 
 	// Navigate to previous month
@@ -71,19 +89,59 @@ const CalendarView = () => {
 	const calendarDays = useMemo(() => {
 		const startOfMonth = currentDate.startOf("month");
 		const endOfMonth = currentDate.endOf("month");
-		const startOfCalendar = startOfMonth.startOf("week");
+
+		// Configure dayjs to use the selected first day of week
+		// 0 = Sunday, 1 = Monday
+		const startOfWeekDay = firstDayOfWeek === "sunday" ? 0 : 1;
+
+		// Get the start of the calendar (beginning of the week containing the first day of the month)
+		const startOfCalendar = startOfMonth
+			.startOf("week")
+			.add(
+				startOfWeekDay === 1 && startOfMonth.startOf("week").day() === 0
+					? 1
+					: 0,
+				"day",
+			);
+
+		// For Monday start, we need to adjust if the month starts on Sunday
+		let calendarStart;
+		if (firstDayOfWeek === "monday") {
+			// If month starts on Sunday and we want Monday first, go back to previous Monday
+			if (startOfMonth.day() === 0) {
+				calendarStart = startOfMonth.subtract(6, "day");
+			} else {
+				calendarStart = startOfMonth.startOf("week").add(1, "day");
+			}
+		} else {
+			// Sunday start (default)
+			calendarStart = startOfMonth.startOf("week");
+		}
+
 		const endOfCalendar = endOfMonth.endOf("week");
 
-		const days = [];
-		let day = startOfCalendar;
+		// For Monday start, adjust end of calendar
+		let calendarEnd;
+		if (firstDayOfWeek === "monday") {
+			if (endOfMonth.day() === 0) {
+				calendarEnd = endOfMonth;
+			} else {
+				calendarEnd = endOfMonth.endOf("week").add(1, "day");
+			}
+		} else {
+			calendarEnd = endOfCalendar;
+		}
 
-		while (day.isBefore(endOfCalendar) || day.isSame(endOfCalendar, "day")) {
+		const days = [];
+		let day = calendarStart;
+
+		while (day.isBefore(calendarEnd) || day.isSame(calendarEnd, "day")) {
 			days.push(day);
 			day = day.add(1, "day");
 		}
 
 		return days;
-	}, [currentDate]);
+	}, [currentDate, firstDayOfWeek]);
 
 	// Get day status and color
 	const getDayStatus = useCallback(
@@ -208,7 +266,15 @@ const CalendarView = () => {
 		};
 	}, [fasts, currentDate]);
 
-	const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+	// Dynamic week days based on first day of week setting
+	const weekDays = useMemo(() => {
+		const baseDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+		if (firstDayOfWeek === "monday") {
+			// Move Sunday to the end: Mon, Tue, Wed, Thu, Fri, Sat, Sun
+			return [...baseDays.slice(1), baseDays[0]];
+		}
+		return baseDays; // Sunday first: Sun, Mon, Tue, Wed, Thu, Fri, Sat
+	}, [firstDayOfWeek]);
 
 	return (
 		<Box sx={{ maxWidth: 800, mx: "auto" }}>
