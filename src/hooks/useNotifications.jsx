@@ -127,6 +127,33 @@ export const NotificationProvider = ({ children }) => {
 		[canShowNotifications, milestoneNotifications, showNotification],
 	);
 
+	const getCustomMilestones = useCallback(() => {
+		const saved = localStorage.getItem("customMilestones");
+		return saved ? JSON.parse(saved) : [];
+	}, []);
+
+	const showCustomMilestoneNotification = useCallback(
+		(hours) => {
+			if (canShowNotifications() && milestoneNotifications) {
+				const customMilestones = getCustomMilestones();
+
+				if (customMilestones.includes(hours)) {
+					showNotification(`${hours}-Hour Custom Milestone! 🎯`, {
+						body: `Congratulations! You've reached your personal ${hours}-hour milestone!`,
+						tag: `custom-milestone-${hours}`,
+						requireInteraction: true,
+					});
+				}
+			}
+		},
+		[
+			canShowNotifications,
+			milestoneNotifications,
+			showNotification,
+			getCustomMilestones,
+		],
+	);
+
 	const toggleNotifications = useCallback(async (enabled) => {
 		setIsEnabled(enabled);
 		localStorage.setItem("notificationsEnabled", enabled.toString());
@@ -148,8 +175,10 @@ export const NotificationProvider = ({ children }) => {
 		showNotification,
 		showFastCompleteNotification,
 		showMilestoneNotification,
+		showCustomMilestoneNotification,
 		toggleNotifications,
 		toggleMilestoneNotifications,
+		getCustomMilestones,
 
 		// Computed
 		canShowNotifications,

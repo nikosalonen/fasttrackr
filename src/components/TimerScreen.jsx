@@ -51,7 +51,11 @@ const TimerScreen = () => {
 		isCompleted,
 	} = useFastTimer();
 
-	const { showFastCompleteNotification } = useNotifications();
+	const {
+		showFastCompleteNotification,
+		showCustomMilestoneNotification,
+		getCustomMilestones,
+	} = useNotifications();
 
 	const [selectedDuration, setSelectedDuration] = useState(() => {
 		const saved = localStorage.getItem("selectedDuration");
@@ -80,6 +84,9 @@ const TimerScreen = () => {
 	const [useCompactTimeFormat, setUseCompactTimeFormat] = useState(() => {
 		return localStorage.getItem("useCompactTimeFormat") === "true";
 	});
+	const [notifiedCustomMilestones, setNotifiedCustomMilestones] = useState(
+		new Set(),
+	);
 
 	const progress = getProgress();
 	const completed = isCompleted();
@@ -141,10 +148,37 @@ const TimerScreen = () => {
 		}
 	}, [progress, isRunning, celebratedMilestones]);
 
+	// Handle custom milestone notifications
+	useEffect(() => {
+		if (!isRunning || elapsedTime === 0) return;
+
+		const customMilestones = getCustomMilestones();
+		const currentHours = Math.floor(elapsedTime / (1000 * 60 * 60));
+
+		for (const milestoneHours of customMilestones) {
+			if (
+				currentHours >= milestoneHours &&
+				!notifiedCustomMilestones.has(milestoneHours)
+			) {
+				setNotifiedCustomMilestones(
+					(prev) => new Set([...prev, milestoneHours]),
+				);
+				showCustomMilestoneNotification(milestoneHours);
+			}
+		}
+	}, [
+		elapsedTime,
+		isRunning,
+		getCustomMilestones,
+		showCustomMilestoneNotification,
+		notifiedCustomMilestones,
+	]);
+
 	// Reset celebrated milestones when starting a new fast
 	useEffect(() => {
 		if (isRunning && progress < 5) {
 			setCelebratedMilestones(new Set());
+			setNotifiedCustomMilestones(new Set());
 		}
 	}, [isRunning, progress]);
 
@@ -157,12 +191,14 @@ const TimerScreen = () => {
 		startFast(duration);
 		setLastFastDuration(duration);
 		setCelebratedMilestones(new Set()); // Reset celebrations for new fast
+		setNotifiedCustomMilestones(new Set()); // Reset custom milestone notifications
 	};
 
 	const handleQuickRestart = () => {
 		if (lastFastDuration) {
 			startFast(lastFastDuration);
 			setCelebratedMilestones(new Set()); // Reset celebrations for new fast
+			setNotifiedCustomMilestones(new Set()); // Reset custom milestone notifications
 		}
 	};
 

@@ -7,6 +7,8 @@ import {
 	Notifications as NotificationIcon,
 	Refresh as RefreshIcon,
 	Update as UpdateIcon,
+	Add as AddIcon,
+	Close as CloseIcon,
 } from "@mui/icons-material";
 import {
 	Alert,
@@ -14,12 +16,14 @@ import {
 	Button,
 	Card,
 	CardContent,
+	Chip,
 	Dialog,
 	DialogActions,
 	DialogContent,
 	DialogTitle,
 	Divider,
 	FormControlLabel,
+	IconButton,
 	Snackbar,
 	Stack,
 	Switch,
@@ -47,6 +51,11 @@ const SettingsScreen = () => {
 	const [clearDialogOpen, setClearDialogOpen] = useState(false);
 	const [importDialogOpen, setImportDialogOpen] = useState(false);
 	const [importData, setImportData] = useState("");
+	const [customMilestones, setCustomMilestones] = useState(() => {
+		const saved = localStorage.getItem("customMilestones");
+		return saved ? JSON.parse(saved) : [];
+	});
+	const [newMilestone, setNewMilestone] = useState("");
 
 	useEffect(() => {
 		// Load dark mode setting
@@ -99,6 +108,34 @@ const SettingsScreen = () => {
 		);
 	};
 
+	const addCustomMilestone = () => {
+		const hours = parseInt(newMilestone);
+		if (!hours || hours <= 0 || hours > 168) {
+			showSnackbar("Please enter a valid number of hours (1-168)");
+			return;
+		}
+
+		if (customMilestones.includes(hours)) {
+			showSnackbar("This milestone already exists");
+			return;
+		}
+
+		const updatedMilestones = [...customMilestones, hours].sort(
+			(a, b) => a - b,
+		);
+		setCustomMilestones(updatedMilestones);
+		localStorage.setItem("customMilestones", JSON.stringify(updatedMilestones));
+		setNewMilestone("");
+		showSnackbar(`${hours}-hour milestone added`);
+	};
+
+	const removeCustomMilestone = (hours) => {
+		const updatedMilestones = customMilestones.filter((h) => h !== hours);
+		setCustomMilestones(updatedMilestones);
+		localStorage.setItem("customMilestones", JSON.stringify(updatedMilestones));
+		showSnackbar(`${hours}-hour milestone removed`);
+	};
+
 	const handleDarkModeToggle = (enabled) => {
 		setDarkMode(enabled);
 		localStorage.setItem("darkMode", enabled.toString());
@@ -126,6 +163,7 @@ const SettingsScreen = () => {
 				notificationsEnabled: localStorage.getItem("notificationsEnabled"),
 				milestoneNotifications: localStorage.getItem("milestoneNotifications"),
 				darkMode: localStorage.getItem("darkMode"),
+				customMilestones: localStorage.getItem("customMilestones"),
 			};
 
 			const exportData = {
@@ -204,6 +242,15 @@ const SettingsScreen = () => {
 					localStorage.setItem("darkMode", data.settings.darkMode);
 					setDarkMode(data.settings.darkMode === "true");
 				}
+				if (data.settings.customMilestones !== undefined) {
+					localStorage.setItem(
+						"customMilestones",
+						data.settings.customMilestones,
+					);
+					setCustomMilestones(
+						JSON.parse(data.settings.customMilestones || "[]"),
+					);
+				}
 			}
 
 			setImportDialogOpen(false);
@@ -226,6 +273,7 @@ const SettingsScreen = () => {
 		localStorage.removeItem("notificationsEnabled");
 		localStorage.removeItem("milestoneNotifications");
 		localStorage.removeItem("darkMode");
+		localStorage.removeItem("customMilestones");
 
 		setClearDialogOpen(false);
 		showSnackbar("All data cleared successfully!");
@@ -318,6 +366,68 @@ const SettingsScreen = () => {
 							}
 							label="Milestone Notifications"
 						/>
+
+						{/* Custom Milestone Notifications */}
+						{notificationsEnabled && milestoneNotifications && (
+							<Box sx={{ mt: 2 }}>
+								<Typography variant="subtitle2" gutterBottom>
+									Custom Milestone Notifications
+								</Typography>
+
+								{/* Add new milestone */}
+								<Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+									<TextField
+										size="small"
+										placeholder="Hours (e.g., 14)"
+										value={newMilestone}
+										onChange={(e) => setNewMilestone(e.target.value)}
+										type="number"
+										inputProps={{ min: 1, max: 168 }}
+										sx={{ width: 150 }}
+									/>
+									<Button
+										variant="outlined"
+										size="small"
+										startIcon={<AddIcon />}
+										onClick={addCustomMilestone}
+										disabled={!newMilestone}
+									>
+										Add
+									</Button>
+								</Stack>
+
+								{/* Display existing milestones */}
+								{customMilestones.length > 0 && (
+									<Box>
+										<Typography
+											variant="caption"
+											color="text.secondary"
+											sx={{ mb: 1 }}
+										>
+											Your custom milestones:
+										</Typography>
+										<Stack
+											direction="row"
+											spacing={1}
+											flexWrap="wrap"
+											sx={{ gap: 1 }}
+										>
+											{customMilestones.map((hours) => (
+												<Chip
+													key={hours}
+													label={`${hours}h`}
+													size="small"
+													onDelete={() => removeCustomMilestone(hours)}
+													deleteIcon={<CloseIcon />}
+													color="primary"
+													variant="outlined"
+												/>
+											))}
+										</Stack>
+									</Box>
+								)}
+							</Box>
+						)}
 
 						<Typography variant="body2" color="text.secondary">
 							Get notified when you complete fasts and reach milestones like 16
