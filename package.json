@@ -30,7 +30,7 @@
 		"pwa-asset-generator": "^8.0.0",
 		"serve": "^14.2.1",
 		"vite": "^6.3.5",
-		"vite-plugin-pwa": "^1.0.0",
+		"vite-plugin-pwa": "^1.0.1",
 		"workbox-webpack-plugin": "^7.3.0",
 		"workbox-window": "^7.3.0"
 	},
