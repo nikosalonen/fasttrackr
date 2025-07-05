@@ -728,11 +728,14 @@ const SettingsScreen = () => {
 							track your intermittent fasting journey. Install it on your device
 							for the best experience!
 						</Typography>
-						<Typography variant="body2" color="text.secondary">
-							Version: 1.0.3
-							<br />
-							Built with Material UI and React
-						</Typography>
+						<Box>
+							<Typography variant="body2" color="text.secondary">
+								Version: 1.0.3
+							</Typography>
+							<Typography variant="body2" color="text.secondary">
+								Built with Material UI and React
+							</Typography>
+						</Box>
 					</CardContent>
 				</Card>
 			</Stack>
