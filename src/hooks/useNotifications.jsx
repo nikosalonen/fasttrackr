@@ -51,10 +51,45 @@ export const NotificationProvider = ({ children }) => {
 		return isEnabled && permission === "granted" && "Notification" in window;
 	}, [isEnabled, permission]);
 
+	const isInQuietHours = useCallback(() => {
+		const quietHoursEnabled =
+			localStorage.getItem("quietHoursEnabled") === "true";
+		if (!quietHoursEnabled) return false;
+
+		const now = new Date();
+		const currentTime = now.getHours() * 60 + now.getMinutes(); // Current time in minutes since midnight
+
+		const quietStart = localStorage.getItem("quietHoursStart") || "23:00";
+		const quietEnd = localStorage.getItem("quietHoursEnd") || "07:00";
+
+		// Parse quiet hours
+		const [startHour, startMin] = quietStart.split(":").map(Number);
+		const [endHour, endMin] = quietEnd.split(":").map(Number);
+
+		const startTime = startHour * 60 + startMin;
+		const endTime = endHour * 60 + endMin;
+
+		// Handle case where quiet hours span midnight (e.g., 23:00 to 07:00)
+		if (startTime > endTime) {
+			// Quiet hours cross midnight: either after start time OR before end time
+			return currentTime >= startTime || currentTime <= endTime;
+		} else {
+			// Quiet hours within same day: between start and end time
+			return currentTime >= startTime && currentTime <= endTime;
+		}
+	}, []);
+
+	const canShowNotificationsWithQuietHours = useCallback(() => {
+		return canShowNotifications() && !isInQuietHours();
+	}, [canShowNotifications, isInQuietHours]);
+
 	const showNotification = useCallback(
 		(title, options = {}) => {
-			if (!canShowNotifications()) {
-				console.log("Cannot show notification:", title);
+			if (!canShowNotificationsWithQuietHours()) {
+				const reason = isInQuietHours()
+					? "quiet hours"
+					: "notifications disabled";
+				console.log(`Cannot show notification (${reason}):`, title);
 				return null;
 			}
 
@@ -82,12 +117,12 @@ export const NotificationProvider = ({ children }) => {
 				return null;
 			}
 		},
-		[canShowNotifications],
+		[canShowNotificationsWithQuietHours, isInQuietHours],
 	);
 
 	const showFastCompleteNotification = useCallback(
 		(duration) => {
-			if (canShowNotifications()) {
+			if (canShowNotificationsWithQuietHours()) {
 				const hours = Math.floor(duration / (1000 * 60 * 60));
 				const minutes = Math.floor((duration % (1000 * 60 * 60)) / (1000 * 60));
 
@@ -98,12 +133,12 @@ export const NotificationProvider = ({ children }) => {
 				});
 			}
 		},
-		[canShowNotifications, showNotification],
+		[canShowNotificationsWithQuietHours, showNotification],
 	);
 
 	const showMilestoneNotification = useCallback(
 		(hours) => {
-			if (canShowNotifications() && milestoneNotifications) {
+			if (canShowNotificationsWithQuietHours() && milestoneNotifications) {
 				const milestoneMessages = {
 					1: "Great start! 1 hour down.",
 					4: "You're doing great! 4 hours completed.",
@@ -124,7 +159,11 @@ export const NotificationProvider = ({ children }) => {
 				});
 			}
 		},
-		[canShowNotifications, milestoneNotifications, showNotification],
+		[
+			canShowNotificationsWithQuietHours,
+			milestoneNotifications,
+			showNotification,
+		],
 	);
 
 	const getCustomMilestones = useCallback(() => {
@@ -134,7 +173,7 @@ export const NotificationProvider = ({ children }) => {
 
 	const showCustomMilestoneNotification = useCallback(
 		(hours) => {
-			if (canShowNotifications() && milestoneNotifications) {
+			if (canShowNotificationsWithQuietHours() && milestoneNotifications) {
 				const customMilestones = getCustomMilestones();
 
 				if (customMilestones.includes(hours)) {
@@ -147,7 +186,7 @@ export const NotificationProvider = ({ children }) => {
 			}
 		},
 		[
-			canShowNotifications,
+			canShowNotificationsWithQuietHours,
 			milestoneNotifications,
 			showNotification,
 			getCustomMilestones,
@@ -182,6 +221,7 @@ export const NotificationProvider = ({ children }) => {
 
 		// Computed
 		canShowNotifications,
+		canShowNotificationsWithQuietHours,
 	};
 
 	return (

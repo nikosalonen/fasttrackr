@@ -30,7 +30,7 @@ import {
 	TextField,
 	Typography,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useNotifications } from "../hooks/useNotifications";
 import SupportDeveloper from "./SupportDeveloper";
 import { updateUtils } from "./UpdateNotification";
@@ -68,6 +68,7 @@ const SettingsScreen = () => {
 	const [use12HourClock, setUse12HourClock] = useState(() => {
 		return localStorage.getItem("use12HourClock") !== "false";
 	});
+	const [quietHoursStatus, setQuietHoursStatus] = useState("");
 
 	useEffect(() => {
 		// Load dark mode setting
@@ -372,6 +373,48 @@ const SettingsScreen = () => {
 		}
 	};
 
+	const isCurrentlyInQuietHours = useCallback(() => {
+		const now = new Date();
+		const currentTime = now.getHours() * 60 + now.getMinutes();
+
+		const [startHour, startMin] = quietHoursStart.split(":").map(Number);
+		const [endHour, endMin] = quietHoursEnd.split(":").map(Number);
+
+		const startTime = startHour * 60 + startMin;
+		const endTime = endHour * 60 + endMin;
+
+		// Handle case where quiet hours span midnight
+		if (startTime > endTime) {
+			return currentTime >= startTime || currentTime <= endTime;
+		} else {
+			return currentTime >= startTime && currentTime <= endTime;
+		}
+	}, [quietHoursStart, quietHoursEnd]);
+
+	const getQuietHoursStatus = useCallback(() => {
+		const isActive = isCurrentlyInQuietHours();
+
+		if (isActive) {
+			return `🔕 Quiet hours active (${quietHoursStart} - ${quietHoursEnd})`;
+		} else {
+			return `🔔 Notifications enabled (quiet hours: ${quietHoursStart} - ${quietHoursEnd})`;
+		}
+	}, [isCurrentlyInQuietHours, quietHoursStart, quietHoursEnd]);
+
+	// Update quiet hours status every minute
+	useEffect(() => {
+		const updateStatus = () => {
+			if (quietHoursEnabled) {
+				setQuietHoursStatus(getQuietHoursStatus());
+			}
+		};
+
+		updateStatus(); // Initial update
+		const interval = setInterval(updateStatus, 60000); // Update every minute
+
+		return () => clearInterval(interval);
+	}, [quietHoursEnabled, getQuietHoursStatus]);
+
 	const SettingCard = ({ title, icon, children }) => (
 		<Card elevation={1}>
 			<CardContent>
@@ -546,6 +589,20 @@ const SettingsScreen = () => {
 												}}
 											/>
 										</Stack>
+
+										{/* Quiet Hours Status */}
+										<Box
+											sx={{
+												mt: 2,
+												p: 1,
+												bgcolor: "background.default",
+												borderRadius: 1,
+											}}
+										>
+											<Typography variant="caption" color="text.secondary">
+												Status: {quietHoursStatus}
+											</Typography>
+										</Box>
 									</Box>
 								)}
 							</Box>
