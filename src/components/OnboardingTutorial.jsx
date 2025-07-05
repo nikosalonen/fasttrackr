@@ -184,12 +184,15 @@ const OnboardingTutorial = ({ open, onClose, onTabChange }) => {
 				onClose={handleSkip}
 				maxWidth="sm"
 				fullWidth
+				sx={{
+					zIndex: 2100, // Higher than MUI modal backdrop (1300) and our overlay
+				}}
 				PaperProps={{
 					sx: {
 						borderRadius: 2,
 						mx: 1,
 						position: "relative",
-						zIndex: 2000, // Ensure it's above the overlay
+						zIndex: 2101, // Ensure dialog content is above everything
 					},
 				}}
 			>
@@ -354,7 +357,7 @@ const OnboardingTutorial = ({ open, onClose, onTabChange }) => {
 						right: 0,
 						bottom: 0,
 						backgroundColor: "rgba(0, 0, 0, 0.5)",
-						zIndex: 1999,
+						zIndex: 2099, // Below the dialog but above everything else
 						pointerEvents: "none",
 						display: "flex",
 						alignItems: "center",
