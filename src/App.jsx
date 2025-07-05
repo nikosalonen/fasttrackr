@@ -1,4 +1,5 @@
 import {
+	CalendarMonth as CalendarIcon,
 	History as HistoryIcon,
 	Settings as SettingsIcon,
 	Assessment as StatsIcon,
@@ -16,6 +17,7 @@ import {
 	useTheme,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
+import CalendarView from "./components/CalendarView";
 import HistoryScreen from "./components/HistoryScreen";
 import InstallPrompt from "./components/InstallPrompt";
 import SettingsScreen from "./components/SettingsScreen";
@@ -26,6 +28,7 @@ import WelcomeScreen from "./components/WelcomeScreen";
 import { FastTimerProvider } from "./hooks/useFastTimer";
 import { NotificationProvider } from "./hooks/useNotifications";
 import { useWindowControlsOverlay } from "./hooks/useWindowControlsOverlay";
+
 function App() {
 	const [currentTab, setCurrentTab] = useState(0);
 	const [isFirstVisit, setIsFirstVisit] = useState(() => {
@@ -52,11 +55,14 @@ function App() {
 				case "history":
 					setCurrentTab(1);
 					break;
-				case "stats":
+				case "calendar":
 					setCurrentTab(2);
 					break;
-				case "settings":
+				case "stats":
 					setCurrentTab(3);
+					break;
+				case "settings":
+					setCurrentTab(4);
 					break;
 				default:
 					setCurrentTab(0);
@@ -73,7 +79,7 @@ function App() {
 		setCurrentTab(newValue);
 
 		// Update URL without reload
-		const screens = ["timer", "history", "stats", "settings"];
+		const screens = ["timer", "history", "calendar", "stats", "settings"];
 		const url = new URL(window.location);
 		url.searchParams.set("screen", screens[newValue]);
 		window.history.pushState({}, "", url);
@@ -82,6 +88,7 @@ function App() {
 	const screens = [
 		{ component: <TimerScreen />, label: "Timer", icon: <TimerIcon /> },
 		{ component: <HistoryScreen />, label: "History", icon: <HistoryIcon /> },
+		{ component: <CalendarView />, label: "Calendar", icon: <CalendarIcon /> },
 		{ component: <StatsScreen />, label: "Stats", icon: <StatsIcon /> },
 		{
 			component: <SettingsScreen />,
