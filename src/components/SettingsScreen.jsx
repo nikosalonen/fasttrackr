@@ -1,4 +1,6 @@
 import {
+	Add as AddIcon,
+	Close as CloseIcon,
 	DarkMode as DarkModeIcon,
 	Delete as DeleteIcon,
 	Download as ExportIcon,
@@ -7,8 +9,6 @@ import {
 	Notifications as NotificationIcon,
 	Refresh as RefreshIcon,
 	Update as UpdateIcon,
-	Add as AddIcon,
-	Close as CloseIcon,
 } from "@mui/icons-material";
 import {
 	Alert,
@@ -23,7 +23,6 @@ import {
 	DialogTitle,
 	Divider,
 	FormControlLabel,
-	IconButton,
 	Snackbar,
 	Stack,
 	Switch,
