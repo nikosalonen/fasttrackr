@@ -4,6 +4,7 @@ import {
 	Edit as EditIcon,
 	Cancel as IncompleteIcon,
 	MoreVert as MoreIcon,
+	Search as SearchIcon,
 } from "@mui/icons-material";
 import {
 	Alert,
@@ -17,6 +18,7 @@ import {
 	DialogContent,
 	DialogTitle,
 	IconButton,
+	InputAdornment,
 	ListItemIcon,
 	ListItemText,
 	Menu,
@@ -29,7 +31,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import dayjs from "dayjs";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 
 const HistoryScreen = () => {
 	const [fasts, setFasts] = useState([]);
@@ -37,17 +39,19 @@ const HistoryScreen = () => {
 	const [editDialogOpen, setEditDialogOpen] = useState(false);
 	const [menuAnchor, setMenuAnchor] = useState(null);
 	const [selectedFast, setSelectedFast] = useState(null);
+	const [searchQuery, setSearchQuery] = useState("");
+	const [activeFilters, setActiveFilters] = useState(new Set());
+
+	const loadHistory = useCallback(() => {
+		const history = JSON.parse(localStorage.getItem("fastHistory") || "[]");
+		setFasts(history);
+	}, []);
 
 	useEffect(() => {
 		loadHistory();
-	}, []);
+	}, [loadHistory]);
 
-	const loadHistory = () => {
-		const history = JSON.parse(localStorage.getItem("fastHistory") || "[]");
-		setFasts(history);
-	};
-
-	const formatDuration = (milliseconds) => {
+	const formatDuration = useCallback((milliseconds) => {
 		const totalSeconds = Math.floor(milliseconds / 1000);
 		const hours = Math.floor(totalSeconds / 3600);
 		const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -57,11 +61,102 @@ const HistoryScreen = () => {
 		} else {
 			return `${minutes}m`;
 		}
+	}, []);
+
+	const formatDateTime = useCallback((dateString) => {
+		return dayjs(dateString).format("MMM D, YYYY h:mm A");
+	}, []);
+
+	// Filter definitions
+	const filterOptions = useMemo(
+		() => [
+			{
+				id: "last-7-days",
+				label: "Last 7 days",
+				filterFn: (fast) => {
+					const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+					return new Date(fast.startTime) >= weekAgo;
+				},
+			},
+			{
+				id: "completed-only",
+				label: "Completed only",
+				filterFn: (fast) => fast.completed,
+			},
+			{
+				id: "16-plus-hours",
+				label: "16+ hours",
+				filterFn: (fast) => fast.actualDuration >= 16 * 60 * 60 * 1000,
+			},
+		],
+		[],
+	);
+
+	// Toggle filter function
+	const toggleFilter = (filterId) => {
+		setActiveFilters((prev) => {
+			const newFilters = new Set(prev);
+			if (newFilters.has(filterId)) {
+				newFilters.delete(filterId);
+			} else {
+				newFilters.add(filterId);
+			}
+			return newFilters;
+		});
 	};
 
-	const formatDateTime = (dateString) => {
-		return dayjs(dateString).format("MMM D, YYYY h:mm A");
+	// Clear all filters
+	const clearAllFilters = () => {
+		setActiveFilters(new Set());
+		setSearchQuery("");
 	};
+
+	// Filter fasts based on search query and active filters
+	const filteredFasts = useMemo(() => {
+		let result = fasts;
+
+		// Apply search query filter
+		if (searchQuery.trim()) {
+			const query = searchQuery.toLowerCase();
+			result = result.filter((fast) => {
+				// Search in duration
+				const durationText = formatDuration(fast.actualDuration).toLowerCase();
+				const targetText = formatDuration(fast.targetDuration).toLowerCase();
+
+				// Search in dates
+				const startDate = formatDateTime(fast.startTime).toLowerCase();
+				const endDate = formatDateTime(fast.endTime).toLowerCase();
+
+				// Search in completion status
+				const statusText = fast.completed ? "completed" : "stopped early";
+
+				return (
+					durationText.includes(query) ||
+					targetText.includes(query) ||
+					startDate.includes(query) ||
+					endDate.includes(query) ||
+					statusText.includes(query)
+				);
+			});
+		}
+
+		// Apply active filters
+		activeFilters.forEach((filterId) => {
+			const filter = filterOptions.find((f) => f.id === filterId);
+			if (filter) {
+				result = result.filter(filter.filterFn);
+			}
+		});
+
+		return result;
+	}, [
+		fasts,
+		searchQuery,
+		activeFilters,
+		formatDuration,
+		formatDateTime,
+		filterOptions,
+	]);
 
 	const handleMenuOpen = (event, fast) => {
 		setMenuAnchor(event.currentTarget);
@@ -157,8 +252,58 @@ const HistoryScreen = () => {
 					Fast History
 				</Typography>
 
+				{/* Search Input */}
+				<TextField
+					fullWidth
+					placeholder="Search fasts by duration, date, or status..."
+					value={searchQuery}
+					onChange={(e) => setSearchQuery(e.target.value)}
+					sx={{ mb: 2 }}
+					InputProps={{
+						startAdornment: (
+							<InputAdornment position="start">
+								<SearchIcon color="action" />
+							</InputAdornment>
+						),
+					}}
+				/>
+
+				{/* Filter Chips */}
+				<Box sx={{ mb: 3 }}>
+					<Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1 }}>
+						{filterOptions.map((filter) => (
+							<Chip
+								key={filter.id}
+								label={filter.label}
+								onClick={() => toggleFilter(filter.id)}
+								variant={activeFilters.has(filter.id) ? "filled" : "outlined"}
+								color={activeFilters.has(filter.id) ? "primary" : "default"}
+								clickable
+							/>
+						))}
+						{(activeFilters.size > 0 || searchQuery.trim()) && (
+							<Button
+								size="small"
+								onClick={clearAllFilters}
+								sx={{ ml: 1, textTransform: "none" }}
+							>
+								Clear All
+							</Button>
+						)}
+					</Stack>
+				</Box>
+
+				{/* Search Results Info */}
+				{(searchQuery.trim() || activeFilters.size > 0) && (
+					<Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+						{filteredFasts.length === 0
+							? "No fasts found matching your search and filters"
+							: `Showing ${filteredFasts.length} fast${filteredFasts.length === 1 ? "" : "s"}`}
+					</Typography>
+				)}
+
 				<Stack spacing={2}>
-					{fasts.map((fast) => (
+					{filteredFasts.map((fast) => (
 						<Card key={fast.id} elevation={1}>
 							<CardContent>
 								<Box

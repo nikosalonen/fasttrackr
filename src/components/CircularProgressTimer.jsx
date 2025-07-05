@@ -44,19 +44,21 @@ const CircularProgressTimer = ({
 		};
 
 		// Button reset styles when component is rendered as button
-		const buttonResetStyles = isRunning ? {
-			background: "none",
-			border: "none",
-			padding: 0,
-			margin: 0,
-			outline: "none",
-			textAlign: "inherit",
-			"&:focus-visible": {
-				outline: "2px solid",
-				outlineColor: "primary.main",
-				outlineOffset: "2px",
-			},
-		} : {};
+		const buttonResetStyles = isRunning
+			? {
+					background: "none",
+					border: "none",
+					padding: 0,
+					margin: 0,
+					outline: "none",
+					textAlign: "inherit",
+					"&:focus-visible": {
+						outline: "2px solid",
+						outlineColor: "primary.main",
+						outlineOffset: "2px",
+					},
+				}
+			: {};
 
 		// Determine color based on state
 		let color = "primary.main";
@@ -109,7 +111,12 @@ const CircularProgressTimer = ({
 	};
 
 	// Helper function to get dynamic description for accessibility
-	const getProgressDescription = (isRunning, progress, completed, targetHours) => {
+	const getProgressDescription = (
+		isRunning,
+		progress,
+		completed,
+		targetHours,
+	) => {
 		if (!isRunning) {
 			return "Fasting timer is not currently running. Progress ring is inactive.";
 		}
@@ -148,14 +155,13 @@ const CircularProgressTimer = ({
 		return {
 			label: (
 				<>
-					<span aria-hidden="true">{isExtended ? "🔥" : "🎉"}</span>
-					{" "}
+					<span aria-hidden="true">{isExtended ? "🔥" : "🎉"}</span>{" "}
 					{isExtended ? "Target Exceeded!" : "Fast Complete!"}
 				</>
 			),
 			ariaLabel: isExtended
 				? "Celebration: Fasting target exceeded!"
-				: "Celebration: Fast completed successfully!"
+				: "Celebration: Fast completed successfully!",
 		};
 	};
 
@@ -168,6 +174,21 @@ const CircularProgressTimer = ({
 
 	// Calculate chip content once for efficiency
 	const chipContent = completed ? getChipContent(progress) : null;
+
+	// Helper function to calculate milestone position
+	const getMilestonePosition = (percentage) => {
+		const angle = (percentage / 100) * 2 * Math.PI; // Start from 3 o'clock (0 degrees), no offset
+		const x = center + radius * Math.cos(angle);
+		const y = center + radius * Math.sin(angle);
+		return { x, y };
+	};
+
+	// Milestone data with positions and labels
+	const milestones = [
+		{ percentage: 25, label: "25%", color: theme.palette.grey[400] },
+		{ percentage: 50, label: "50%", color: theme.palette.grey[400] },
+		{ percentage: 75, label: "75%", color: theme.palette.grey[400] },
+	];
 
 	return (
 		<Box sx={{ textAlign: "center", py: 4 }}>
@@ -190,7 +211,12 @@ const CircularProgressTimer = ({
 				>
 					<title id="fasting-progress-title">Fasting Progress Ring</title>
 					<desc id="fasting-progress-desc">
-						{getProgressDescription(isRunning, progress, completed, targetHours)}
+						{getProgressDescription(
+							isRunning,
+							progress,
+							completed,
+							targetHours,
+						)}
 					</desc>
 					<defs>
 						<linearGradient
@@ -217,6 +243,32 @@ const CircularProgressTimer = ({
 						stroke={theme.palette.grey[200]}
 						strokeWidth={strokeWidth}
 					/>
+
+					{/* Milestone markers */}
+					{isRunning &&
+						milestones.map((milestone) => {
+							const position = getMilestonePosition(milestone.percentage);
+							const isPassed = progress >= milestone.percentage;
+							const isActive =
+								progress >= milestone.percentage - 5 &&
+								progress <= milestone.percentage + 5;
+
+							return (
+								<circle
+									key={milestone.percentage}
+									cx={position.x}
+									cy={position.y}
+									r={isActive ? 6 : 4}
+									fill={isPassed ? theme.palette.primary.main : milestone.color}
+									stroke={theme.palette.background.paper}
+									strokeWidth={2}
+									style={{
+										transition: "all 0.3s ease",
+										opacity: isActive ? 1 : 0.7,
+									}}
+								/>
+							);
+						})}
 
 					{/* Base circle when extended (faded) */}
 					{isRunning && progress > 100 && (
@@ -273,7 +325,11 @@ const CircularProgressTimer = ({
 						onClick={onTimeToggle}
 						sx={getTimerDisplayStyles(isRunning, progress, completed)}
 						role={isRunning ? "button" : undefined}
-						aria-label={isRunning ? `Timer display: ${displayTime}. Click to toggle between elapsed time and remaining time.` : undefined}
+						aria-label={
+							isRunning
+								? `Timer display: ${displayTime}. Click to toggle between elapsed time and remaining time.`
+								: undefined
+						}
 						tabIndex={isRunning ? 0 : -1}
 					>
 						{displayTime}

@@ -24,6 +24,8 @@ import {
 	InputLabel,
 	MenuItem,
 	Select,
+	Snackbar,
+	Alert,
 	Stack,
 	TextField,
 	Typography,
@@ -72,9 +74,49 @@ const TimerScreen = () => {
 			? Math.floor(history[0].targetDuration / (1000 * 60 * 60))
 			: null;
 	});
+	const [celebratedMilestones, setCelebratedMilestones] = useState(new Set());
+	const [showCelebration, setShowCelebration] = useState(false);
+	const [celebrationMessage, setCelebrationMessage] = useState("");
+	const [useCompactTimeFormat, setUseCompactTimeFormat] = useState(() => {
+		return localStorage.getItem("useCompactTimeFormat") === "true";
+	});
 
 	const progress = getProgress();
 	const completed = isCompleted();
+
+	// Milestone celebration messages
+	const milestoneMessages = {
+		25: "Great start! 🌟 You're 25% there!",
+		50: "Halfway there! 🎉 Keep going strong!",
+		75: "Amazing progress! 💪 You're 75% complete!",
+	};
+
+	// Format time in compact format (16h 23m)
+	const formatTimeCompact = (milliseconds) => {
+		const totalSeconds = Math.floor(milliseconds / 1000);
+		const hours = Math.floor(totalSeconds / 3600);
+		const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+		if (hours > 0) {
+			return `${hours}h ${minutes}m`;
+		} else {
+			return `${minutes}m`;
+		}
+	};
+
+	// Get formatted time based on user preference
+	const getFormattedTime = (milliseconds) => {
+		return useCompactTimeFormat
+			? formatTimeCompact(milliseconds)
+			: formatTime(milliseconds);
+	};
+
+	// Toggle time format and save preference
+	const handleTimeFormatToggle = () => {
+		const newFormat = !useCompactTimeFormat;
+		setUseCompactTimeFormat(newFormat);
+		localStorage.setItem("useCompactTimeFormat", newFormat.toString());
+	};
 
 	// Handle fast completion notification
 	useEffect(() => {
@@ -82,6 +124,29 @@ const TimerScreen = () => {
 			showFastCompleteNotification(targetDuration);
 		}
 	}, [completed, isRunning, targetDuration, showFastCompleteNotification]);
+
+	// Handle milestone celebrations
+	useEffect(() => {
+		if (!isRunning || progress === 0) return;
+
+		const milestones = [25, 50, 75];
+
+		for (const milestone of milestones) {
+			if (progress >= milestone && !celebratedMilestones.has(milestone)) {
+				setCelebratedMilestones((prev) => new Set([...prev, milestone]));
+				setCelebrationMessage(milestoneMessages[milestone]);
+				setShowCelebration(true);
+				break; // Only show one celebration at a time
+			}
+		}
+	}, [progress, isRunning, celebratedMilestones]);
+
+	// Reset celebrated milestones when starting a new fast
+	useEffect(() => {
+		if (isRunning && progress < 5) {
+			setCelebratedMilestones(new Set());
+		}
+	}, [isRunning, progress]);
 
 	const handleStart = () => {
 		const duration = showCustomInput ? parseInt(customHours) : selectedDuration;
@@ -91,11 +156,13 @@ const TimerScreen = () => {
 		}
 		startFast(duration);
 		setLastFastDuration(duration);
+		setCelebratedMilestones(new Set()); // Reset celebrations for new fast
 	};
 
 	const handleQuickRestart = () => {
 		if (lastFastDuration) {
 			startFast(lastFastDuration);
+			setCelebratedMilestones(new Set()); // Reset celebrations for new fast
 		}
 	};
 
@@ -161,7 +228,7 @@ const TimerScreen = () => {
 		return endTime.toLocaleString(undefined, {
 			hour: "2-digit",
 			minute: "2-digit",
-			hour12: true,
+			hour12: false,
 		});
 	};
 
@@ -216,19 +283,34 @@ const TimerScreen = () => {
 						isRunning={isRunning}
 						completed={completed}
 						displayTime={
-							isRunning ? formatTime(getDisplayTime()) : "Ready to fast?"
+							isRunning ? getFormattedTime(getDisplayTime()) : "Ready to fast?"
 						}
 						timeLabel={getTimeLabel()}
 						onTimeToggle={handleTimeDisplayToggle}
 						targetHours={targetHours}
 					/>
 
-					{/* Estimated End Time */}
+					{/* Estimated End Time and Time Format Toggle */}
 					{isRunning && (
 						<Box sx={{ textAlign: "center", pb: 2 }}>
 							<Typography variant="caption" color="text.secondary">
 								Ends at {getEstimatedEndTime()}
 							</Typography>
+							<Box sx={{ mt: 1 }}>
+								<Button
+									size="small"
+									variant="text"
+									onClick={handleTimeFormatToggle}
+									sx={{
+										fontSize: "0.7rem",
+										minWidth: "auto",
+										textTransform: "none",
+										color: "text.secondary",
+									}}
+								>
+									{useCompactTimeFormat ? "Show HH:MM:SS" : "Show compact"}
+								</Button>
+							</Box>
 						</Box>
 					)}
 				</Card>
@@ -481,6 +563,23 @@ const TimerScreen = () => {
 						</Button>
 					</DialogActions>
 				</Dialog>
+
+				{/* Milestone Celebration Snackbar */}
+				<Snackbar
+					open={showCelebration}
+					autoHideDuration={4000}
+					onClose={() => setShowCelebration(false)}
+					anchorOrigin={{ vertical: "top", horizontal: "center" }}
+				>
+					<Alert
+						onClose={() => setShowCelebration(false)}
+						severity="success"
+						variant="filled"
+						sx={{ width: "100%" }}
+					>
+						{celebrationMessage}
+					</Alert>
+				</Snackbar>
 			</Stack>
 		</Box>
 	);
