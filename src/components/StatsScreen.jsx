@@ -2,6 +2,8 @@ import {
 	Whatshot as StreakIcon,
 	Timer as TimerIcon,
 	TrendingUp as TrendingIcon,
+	TrendingDown as TrendingDownIcon,
+	TrendingFlat as TrendingFlatIcon,
 	EmojiEvents as TrophyIcon,
 } from "@mui/icons-material";
 import {
@@ -28,6 +30,9 @@ const StatsScreen = () => {
 		thisWeekFasts: 0,
 		thisMonthFasts: 0,
 		completionRate: 0,
+		weeklyTrends: [],
+		monthlyTrends: [],
+		trendDirection: "flat",
 	});
 
 	const calculateStats = useCallback(() => {
@@ -226,7 +231,7 @@ const StatsScreen = () => {
 
 			<Grid container spacing={2.5}>
 				{/* Primary Stats Row - Ensure equal heights and perfect width alignment */}
-				<Grid item xs={6} sm={3}>
+				<Grid size={{ xs: 6, sm: 3 }}>
 					<StatCard
 						title="Total Fasts"
 						value={stats.totalFasts}
@@ -235,7 +240,7 @@ const StatsScreen = () => {
 					/>
 				</Grid>
 
-				<Grid item xs={6} sm={3}>
+				<Grid size={{ xs: 6, sm: 3 }}>
 					<StatCard
 						title="Completed"
 						value={stats.completedFasts}
@@ -245,7 +250,7 @@ const StatsScreen = () => {
 					/>
 				</Grid>
 
-				<Grid item xs={6} sm={3}>
+				<Grid size={{ xs: 6, sm: 3 }}>
 					<StatCard
 						title="Current Streak"
 						value={`${stats.currentStreak}`}
@@ -255,7 +260,7 @@ const StatsScreen = () => {
 					/>
 				</Grid>
 
-				<Grid item xs={6} sm={3}>
+				<Grid size={{ xs: 6, sm: 3 }}>
 					<StatCard
 						title="Longest Fast"
 						value={formatDuration(stats.longestFast)}
@@ -265,7 +270,7 @@ const StatsScreen = () => {
 				</Grid>
 
 				{/* Detailed Stats - Full width to match the 4 cards above */}
-				<Grid item xs={12}>
+				<Grid size={12}>
 					<Card elevation={1}>
 						<CardContent sx={{ py: 4 }}>
 							<Typography
@@ -277,7 +282,7 @@ const StatsScreen = () => {
 							</Typography>
 
 							<Grid container spacing={2.5}>
-								<Grid item xs={12} sm={4}>
+								<Grid size={{ xs: 12, sm: 4 }}>
 									<Box sx={{ textAlign: "center", py: 3 }}>
 										<Typography
 											variant="h4"
@@ -297,7 +302,7 @@ const StatsScreen = () => {
 									</Box>
 								</Grid>
 
-								<Grid item xs={12} sm={4}>
+								<Grid size={{ xs: 12, sm: 4 }}>
 									<Box sx={{ textAlign: "center", py: 3 }}>
 										<Typography
 											variant="h4"
@@ -317,7 +322,7 @@ const StatsScreen = () => {
 									</Box>
 								</Grid>
 
-								<Grid item xs={12} sm={4}>
+								<Grid size={{ xs: 12, sm: 4 }}>
 									<Box sx={{ textAlign: "center", py: 3 }}>
 										<Typography
 											variant="h4"
@@ -342,7 +347,7 @@ const StatsScreen = () => {
 				</Grid>
 
 				{/* Achievements - Full width to match the 4 cards above */}
-				<Grid item xs={12}>
+				<Grid size={12}>
 					<Card elevation={1}>
 						<CardContent sx={{ py: 4 }}>
 							<Typography
