@@ -116,6 +116,9 @@ const TimerScreen = () => {
 	const [use12HourClock, setUse12HourClock] = useState(() => {
 		return localStorage.getItem("use12HourClock") !== "false";
 	});
+	const [swipeGesturesEnabled, setSwipeGesturesEnabled] = useState(() => {
+		return localStorage.getItem("swipeGesturesEnabled") !== "false";
+	});
 	const [templates, setTemplates] = useState(() => {
 		const saved = localStorage.getItem("fastTemplates");
 		return saved ? JSON.parse(saved) : [];
@@ -161,11 +164,13 @@ const TimerScreen = () => {
 		localStorage.setItem("useCompactTimeFormat", newFormat.toString());
 	};
 
-	// Listen for changes to 12-hour clock setting
+	// Listen for changes to 12-hour clock and swipe gestures settings
 	useEffect(() => {
 		const handleStorageChange = (e) => {
 			if (e.key === "use12HourClock") {
 				setUse12HourClock(e.newValue !== "false");
+			} else if (e.key === "swipeGesturesEnabled") {
+				setSwipeGesturesEnabled(e.newValue !== "false");
 			}
 		};
 
@@ -510,6 +515,12 @@ const TimerScreen = () => {
 						timeLabel={getTimeLabel()}
 						onTimeToggle={handleTimeDisplayToggle}
 						targetHours={targetHours}
+						onSwipeStart={
+							swipeGesturesEnabled && !isRunning ? handleStart : undefined
+						}
+						onSwipeStop={
+							swipeGesturesEnabled && isRunning ? handleStopClick : undefined
+						}
 					/>
 
 					{/* Estimated End Time and Time Format Toggle */}

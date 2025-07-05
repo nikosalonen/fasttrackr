@@ -20,6 +20,7 @@ import React, { useEffect, useState } from "react";
 import CalendarView from "./components/CalendarView";
 import HistoryScreen from "./components/HistoryScreen";
 import InstallPrompt from "./components/InstallPrompt";
+import OnboardingTutorial from "./components/OnboardingTutorial";
 import SettingsScreen from "./components/SettingsScreen";
 import StatsScreen from "./components/StatsScreen";
 import TimerScreen from "./components/TimerScreen";
@@ -34,6 +35,13 @@ function App() {
 	const [isFirstVisit, setIsFirstVisit] = useState(() => {
 		return localStorage.getItem("fasttrackr_first_visit") !== "false";
 	});
+	const [showOnboarding, setShowOnboarding] = useState(() => {
+		// Show onboarding if not completed and not first visit
+		return (
+			localStorage.getItem("onboardingCompleted") !== "true" &&
+			localStorage.getItem("fasttrackr_first_visit") === "false"
+		);
+	});
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 	const { isActive: isWCOActive, getTitleBarAreaCSS } =
@@ -42,6 +50,17 @@ function App() {
 	const markFirstVisitComplete = () => {
 		localStorage.setItem("fasttrackr_first_visit", "false");
 		setIsFirstVisit(false);
+
+		// Show onboarding tutorial after welcome screen
+		const onboardingCompleted =
+			localStorage.getItem("onboardingCompleted") === "true";
+		if (!onboardingCompleted) {
+			setShowOnboarding(true);
+		}
+	};
+
+	const handleOnboardingClose = () => {
+		setShowOnboarding(false);
 	};
 
 	useEffect(() => {
@@ -230,6 +249,13 @@ function App() {
 
 					{/* Welcome Screen for First-Time Users */}
 					<WelcomeScreen open={isFirstVisit} onClose={markFirstVisitComplete} />
+
+					{/* Onboarding Tutorial */}
+					<OnboardingTutorial
+						open={showOnboarding}
+						onClose={handleOnboardingClose}
+						onTabChange={setCurrentTab}
+					/>
 				</Box>
 			</NotificationProvider>
 		</FastTimerProvider>

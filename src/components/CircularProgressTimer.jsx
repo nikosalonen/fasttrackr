@@ -1,4 +1,5 @@
 import { Box, Chip, Typography, useTheme } from "@mui/material";
+import { useCallback, useRef, useState } from "react";
 
 const CircularProgressTimer = ({
 	progress,
@@ -8,16 +9,169 @@ const CircularProgressTimer = ({
 	timeLabel,
 	onTimeToggle,
 	targetHours,
+	onSwipeStart,
+	onSwipeStop,
 	size = 300,
 	strokeWidth = 12,
 }) => {
 	const theme = useTheme();
+	const [swipeState, setSwipeState] = useState({
+		isDragging: false,
+		startX: 0,
+		startY: 0,
+		currentX: 0,
+		currentY: 0,
+		direction: null,
+		threshold: 50, // Minimum distance for swipe
+	});
+	const timerRef = useRef(null);
 
 	// Calculate dynamic dimensions based on props
 	const svgSize = size;
 	const center = svgSize / 2;
 	const radius = center - strokeWidth * 2; // Leave some padding for the stroke
 	const circumference = 2 * Math.PI * radius;
+
+	// Swipe gesture handlers
+	const handleTouchStart = useCallback(
+		(e) => {
+			if (!onSwipeStart && !onSwipeStop) return;
+
+			const touch = e.touches[0];
+			setSwipeState((prev) => ({
+				...prev,
+				isDragging: true,
+				startX: touch.clientX,
+				startY: touch.clientY,
+				currentX: touch.clientX,
+				currentY: touch.clientY,
+				direction: null,
+			}));
+		},
+		[onSwipeStart, onSwipeStop],
+	);
+
+	const handleTouchMove = useCallback(
+		(e) => {
+			if (!swipeState.isDragging) return;
+
+			const touch = e.touches[0];
+			const deltaX = touch.clientX - swipeState.startX;
+			const deltaY = touch.clientY - swipeState.startY;
+
+			// Determine swipe direction
+			let direction = null;
+			if (Math.abs(deltaX) > Math.abs(deltaY)) {
+				// Horizontal swipe
+				if (Math.abs(deltaX) > swipeState.threshold) {
+					direction = deltaX > 0 ? "right" : "left";
+				}
+			} else {
+				// Vertical swipe
+				if (Math.abs(deltaY) > swipeState.threshold) {
+					direction = deltaY > 0 ? "down" : "up";
+				}
+			}
+
+			setSwipeState((prev) => ({
+				...prev,
+				currentX: touch.clientX,
+				currentY: touch.clientY,
+				direction,
+			}));
+
+			// Prevent scrolling during swipe
+			if (direction) {
+				e.preventDefault();
+			}
+		},
+		[
+			swipeState.isDragging,
+			swipeState.startX,
+			swipeState.startY,
+			swipeState.threshold,
+		],
+	);
+
+	const handleTouchEnd = useCallback(
+		(e) => {
+			if (!swipeState.isDragging) return;
+
+			const deltaX = swipeState.currentX - swipeState.startX;
+			const deltaY = swipeState.currentY - swipeState.startY;
+
+			// Determine final swipe direction and execute action
+			if (
+				Math.abs(deltaX) > Math.abs(deltaY) &&
+				Math.abs(deltaX) > swipeState.threshold
+			) {
+				// Horizontal swipe
+				if (deltaX > 0) {
+					// Swipe right - start fast (if not running)
+					if (!isRunning && onSwipeStart) {
+						onSwipeStart();
+					}
+				} else {
+					// Swipe left - stop fast (if running)
+					if (isRunning && onSwipeStop) {
+						onSwipeStop();
+					}
+				}
+			} else if (Math.abs(deltaY) > swipeState.threshold) {
+				// Vertical swipe
+				if (deltaY < 0) {
+					// Swipe up - start fast (if not running)
+					if (!isRunning && onSwipeStart) {
+						onSwipeStart();
+					}
+				} else {
+					// Swipe down - stop fast (if running)
+					if (isRunning && onSwipeStop) {
+						onSwipeStop();
+					}
+				}
+			}
+
+			// Reset swipe state
+			setSwipeState((prev) => ({
+				...prev,
+				isDragging: false,
+				startX: 0,
+				startY: 0,
+				currentX: 0,
+				currentY: 0,
+				direction: null,
+			}));
+		},
+		[swipeState, isRunning, onSwipeStart, onSwipeStop],
+	);
+
+	// Get swipe visual feedback
+	const getSwipeTransform = () => {
+		if (!swipeState.isDragging || !swipeState.direction) return "";
+
+		const deltaX = swipeState.currentX - swipeState.startX;
+		const deltaY = swipeState.currentY - swipeState.startY;
+
+		// Limit movement to prevent excessive dragging
+		const maxOffset = 20;
+		const clampedX = Math.max(-maxOffset, Math.min(maxOffset, deltaX * 0.3));
+		const clampedY = Math.max(-maxOffset, Math.min(maxOffset, deltaY * 0.3));
+
+		return `translate(${clampedX}px, ${clampedY}px)`;
+	};
+
+	// Get swipe hint text
+	const getSwipeHint = () => {
+		if (onSwipeStart || onSwipeStop) {
+			if (isRunning) {
+				return "Swipe ← or ↓ to stop";
+			} else {
+				return "Swipe → or ↑ to start";
+			}
+		}
+		return "";
+	};
 
 	// Helper function to calculate stroke-dashoffset for circular progress
 	const calculateStrokeDashOffset = (progressPercent) => {
@@ -237,13 +391,20 @@ const CircularProgressTimer = ({
 	return (
 		<Box sx={{ textAlign: "center", py: 4 }}>
 			<Box
+				ref={timerRef}
 				sx={{
 					position: "relative",
 					display: "inline-flex",
 					alignItems: "center",
 					justifyContent: "center",
 					mb: 2,
+					transform: getSwipeTransform(),
+					transition: swipeState.isDragging ? "none" : "transform 0.2s ease",
+					touchAction: onSwipeStart || onSwipeStop ? "none" : "auto",
 				}}
+				onTouchStart={handleTouchStart}
+				onTouchMove={handleTouchMove}
+				onTouchEnd={handleTouchEnd}
 			>
 				{/* Custom SVG for gradient progress */}
 				<svg
@@ -355,6 +516,48 @@ const CircularProgressTimer = ({
 					)}
 				</svg>
 
+				{/* Swipe visual feedback overlay */}
+				{swipeState.isDragging && swipeState.direction && (
+					<Box
+						sx={{
+							position: "absolute",
+							top: 0,
+							left: 0,
+							right: 0,
+							bottom: 0,
+							borderRadius: "50%",
+							backgroundColor:
+								swipeState.direction === "right" ||
+								swipeState.direction === "up"
+									? "success.main"
+									: "error.main",
+							opacity: 0.1,
+							pointerEvents: "none",
+							display: "flex",
+							alignItems: "center",
+							justifyContent: "center",
+						}}
+					>
+						<Typography
+							variant="h4"
+							sx={{
+								color:
+									swipeState.direction === "right" ||
+									swipeState.direction === "up"
+										? "success.main"
+										: "error.main",
+								opacity: 0.6,
+								fontWeight: "bold",
+							}}
+						>
+							{swipeState.direction === "right" && "▶"}
+							{swipeState.direction === "left" && "◀"}
+							{swipeState.direction === "up" && "▲"}
+							{swipeState.direction === "down" && "▼"}
+						</Typography>
+					</Box>
+				)}
+
 				{/* Timer content in center */}
 				<Box
 					sx={{
@@ -461,6 +664,22 @@ const CircularProgressTimer = ({
 						/>
 					)}
 				</>
+			)}
+
+			{/* Swipe hint text */}
+			{getSwipeHint() && (
+				<Typography
+					variant="caption"
+					color="text.secondary"
+					sx={{
+						mt: 1,
+						fontSize: "0.7rem",
+						opacity: 0.7,
+						display: "block",
+					}}
+				>
+					{getSwipeHint()}
+				</Typography>
 			)}
 		</Box>
 	);

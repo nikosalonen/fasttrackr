@@ -9,6 +9,7 @@ import {
 	Info as InfoIcon,
 	Notifications as NotificationIcon,
 	Refresh as RefreshIcon,
+	School as TutorialIcon,
 	Update as UpdateIcon,
 } from "@mui/icons-material";
 import {
@@ -38,6 +39,7 @@ import {
 import React, { useCallback, useEffect, useState } from "react";
 import { useNotifications } from "../hooks/useNotifications";
 import GoalSettings from "./GoalSettings";
+import OnboardingTutorial from "./OnboardingTutorial";
 import SupportDeveloper from "./SupportDeveloper";
 import { updateUtils } from "./UpdateNotification";
 
@@ -79,11 +81,24 @@ const SettingsScreen = () => {
 	});
 	const [quietHoursStatus, setQuietHoursStatus] = useState("");
 	const [showGoalSettings, setShowGoalSettings] = useState(false);
+	const [swipeGesturesEnabled, setSwipeGesturesEnabled] = useState(() => {
+		return localStorage.getItem("swipeGesturesEnabled") !== "false";
+	});
+	const [showOnboarding, setShowOnboarding] = useState(false);
 
 	useEffect(() => {
 		// Load dark mode setting
 		setDarkMode(localStorage.getItem("darkMode") === "true");
 	}, []);
+
+	const handleReplayTutorial = () => {
+		setShowOnboarding(true);
+		showSnackbar("Starting tutorial...");
+	};
+
+	const handleOnboardingClose = () => {
+		setShowOnboarding(false);
+	};
 
 	const handleNotificationToggle = async (enabled) => {
 		if (enabled) {
@@ -157,6 +172,14 @@ const SettingsScreen = () => {
 		setFirstDayOfWeek(day);
 		localStorage.setItem("firstDayOfWeek", day);
 		showSnackbar(`Week starts on ${day === "sunday" ? "Sunday" : "Monday"}`);
+	};
+
+	const handleSwipeGesturesToggle = (enabled) => {
+		setSwipeGesturesEnabled(enabled);
+		localStorage.setItem("swipeGesturesEnabled", enabled.toString());
+		showSnackbar(
+			enabled ? "Swipe gestures enabled" : "Swipe gestures disabled",
+		);
 	};
 
 	const addCustomMilestone = () => {
@@ -450,6 +473,28 @@ const SettingsScreen = () => {
 			</Typography>
 
 			<Stack spacing={3}>
+				{/* Help & Tutorial */}
+				<SettingCard
+					title="Help & Tutorial"
+					icon={<TutorialIcon color="primary" />}
+				>
+					<Stack spacing={2}>
+						<Button
+							variant="outlined"
+							startIcon={<TutorialIcon />}
+							onClick={handleReplayTutorial}
+							fullWidth
+						>
+							Replay Tutorial
+						</Button>
+
+						<Typography variant="body2" color="text.secondary">
+							Take the guided tour again to learn about FastTrackr's features
+							and get helpful tips for successful fasting.
+						</Typography>
+					</Stack>
+				</SettingCard>
+
 				{/* Notifications */}
 				<SettingCard
 					title="Notifications"
@@ -665,9 +710,21 @@ const SettingsScreen = () => {
 							</Select>
 						</FormControl>
 
+						<FormControlLabel
+							control={
+								<Switch
+									checked={swipeGesturesEnabled}
+									onChange={(e) => handleSwipeGesturesToggle(e.target.checked)}
+								/>
+							}
+							label="Swipe Gestures on Timer"
+						/>
+
 						<Typography variant="body2" color="text.secondary">
 							Toggle between light and dark themes for better viewing comfort.
-							Use 12-hour or 24-hour time format for displaying times.
+							Use 12-hour or 24-hour time format for displaying times. Enable
+							swipe gestures on the timer for quick start/stop actions on
+							mobile.
 						</Typography>
 					</Stack>
 				</SettingCard>
@@ -873,6 +930,13 @@ const SettingsScreen = () => {
 					<GoalSettings />
 				</DialogContent>
 			</Dialog>
+
+			{/* Onboarding Tutorial */}
+			<OnboardingTutorial
+				open={showOnboarding}
+				onClose={handleOnboardingClose}
+				onTabChange={() => {}} // No tab change needed from settings
+			/>
 
 			{/* Snackbar for notifications */}
 			<Snackbar
