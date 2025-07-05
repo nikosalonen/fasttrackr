@@ -78,14 +78,36 @@ const TimerScreen = () => {
 			? Math.floor(history[0].targetDuration / (1000 * 60 * 60))
 			: null;
 	});
-	const [celebratedMilestones, setCelebratedMilestones] = useState(new Set());
+	const [celebratedMilestones, setCelebratedMilestones] = useState(() => {
+		// Load celebrated milestones from localStorage, tied to current fast
+		const currentFast = JSON.parse(localStorage.getItem("currentFast") || "{}");
+		if (currentFast.id) {
+			const saved = localStorage.getItem(
+				`celebratedMilestones_${currentFast.id}`,
+			);
+			return saved ? new Set(JSON.parse(saved)) : new Set();
+		}
+		return new Set();
+	});
 	const [showCelebration, setShowCelebration] = useState(false);
 	const [celebrationMessage, setCelebrationMessage] = useState("");
 	const [useCompactTimeFormat, setUseCompactTimeFormat] = useState(() => {
 		return localStorage.getItem("useCompactTimeFormat") === "true";
 	});
 	const [notifiedCustomMilestones, setNotifiedCustomMilestones] = useState(
-		new Set(),
+		() => {
+			// Load notified custom milestones from localStorage, tied to current fast
+			const currentFast = JSON.parse(
+				localStorage.getItem("currentFast") || "{}",
+			);
+			if (currentFast.id) {
+				const saved = localStorage.getItem(
+					`notifiedCustomMilestones_${currentFast.id}`,
+				);
+				return saved ? new Set(JSON.parse(saved)) : new Set();
+			}
+			return new Set();
+		},
 	);
 	const [use12HourClock, setUse12HourClock] = useState(() => {
 		return localStorage.getItem("use12HourClock") !== "false";
@@ -150,6 +172,28 @@ const TimerScreen = () => {
 		}
 	}, [completed, isRunning, targetDuration, showFastCompleteNotification]);
 
+	// Save celebrated milestones to localStorage when they change
+	useEffect(() => {
+		const currentFast = JSON.parse(localStorage.getItem("currentFast") || "{}");
+		if (currentFast.id && celebratedMilestones.size > 0) {
+			localStorage.setItem(
+				`celebratedMilestones_${currentFast.id}`,
+				JSON.stringify([...celebratedMilestones]),
+			);
+		}
+	}, [celebratedMilestones]);
+
+	// Save notified custom milestones to localStorage when they change
+	useEffect(() => {
+		const currentFast = JSON.parse(localStorage.getItem("currentFast") || "{}");
+		if (currentFast.id && notifiedCustomMilestones.size > 0) {
+			localStorage.setItem(
+				`notifiedCustomMilestones_${currentFast.id}`,
+				JSON.stringify([...notifiedCustomMilestones]),
+			);
+		}
+	}, [notifiedCustomMilestones]);
+
 	// Handle milestone celebrations
 	useEffect(() => {
 		if (!isRunning || progress === 0) return;
@@ -197,6 +241,15 @@ const TimerScreen = () => {
 		if (isRunning && progress < 5) {
 			setCelebratedMilestones(new Set());
 			setNotifiedCustomMilestones(new Set());
+
+			// Clear localStorage entries for milestone celebrations
+			const currentFast = JSON.parse(
+				localStorage.getItem("currentFast") || "{}",
+			);
+			if (currentFast.id) {
+				localStorage.removeItem(`celebratedMilestones_${currentFast.id}`);
+				localStorage.removeItem(`notifiedCustomMilestones_${currentFast.id}`);
+			}
 		}
 	}, [isRunning, progress]);
 
@@ -210,6 +263,17 @@ const TimerScreen = () => {
 		setLastFastDuration(duration);
 		setCelebratedMilestones(new Set()); // Reset celebrations for new fast
 		setNotifiedCustomMilestones(new Set()); // Reset custom milestone notifications
+
+		// Clear localStorage entries for milestone celebrations from previous fast
+		setTimeout(() => {
+			const currentFast = JSON.parse(
+				localStorage.getItem("currentFast") || "{}",
+			);
+			if (currentFast.id) {
+				localStorage.removeItem(`celebratedMilestones_${currentFast.id}`);
+				localStorage.removeItem(`notifiedCustomMilestones_${currentFast.id}`);
+			}
+		}, 100); // Small delay to ensure currentFast is updated
 	};
 
 	const handleQuickRestart = () => {
@@ -217,6 +281,17 @@ const TimerScreen = () => {
 			startFast(lastFastDuration);
 			setCelebratedMilestones(new Set()); // Reset celebrations for new fast
 			setNotifiedCustomMilestones(new Set()); // Reset custom milestone notifications
+
+			// Clear localStorage entries for milestone celebrations from previous fast
+			setTimeout(() => {
+				const currentFast = JSON.parse(
+					localStorage.getItem("currentFast") || "{}",
+				);
+				if (currentFast.id) {
+					localStorage.removeItem(`celebratedMilestones_${currentFast.id}`);
+					localStorage.removeItem(`notifiedCustomMilestones_${currentFast.id}`);
+				}
+			}, 100); // Small delay to ensure currentFast is updated
 		}
 	};
 
