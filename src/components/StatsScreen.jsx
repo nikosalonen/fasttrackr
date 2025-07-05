@@ -50,6 +50,9 @@ const StatsScreen = () => {
 				thisWeekFasts: 0,
 				thisMonthFasts: 0,
 				completionRate: 0,
+				weeklyTrends: [],
+				monthlyTrends: [],
+				trendDirection: "flat",
 			});
 			return;
 		}
@@ -96,6 +99,76 @@ const StatsScreen = () => {
 			}
 		}
 
+		// Calculate weekly trends (last 4 weeks)
+		const weeklyTrends = [];
+		for (let i = 0; i < 4; i++) {
+			const weekStart = new Date(
+				now.getTime() - (i + 1) * 7 * 24 * 60 * 60 * 1000,
+			);
+			const weekEnd = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000);
+
+			const weekFasts = fasts.filter((f) => {
+				const fastDate = new Date(f.startTime);
+				return fastDate >= weekStart && fastDate < weekEnd;
+			});
+
+			const weekCompleted = weekFasts.filter((f) => f.completed).length;
+			const weekTotal = weekFasts.length;
+			const weekCompletionRate =
+				weekTotal > 0 ? (weekCompleted / weekTotal) * 100 : 0;
+
+			weeklyTrends.unshift({
+				period: `Week ${4 - i}`,
+				completionRate: weekCompletionRate,
+				totalFasts: weekTotal,
+				completedFasts: weekCompleted,
+			});
+		}
+
+		// Calculate monthly trends (last 3 months)
+		const monthlyTrends = [];
+		for (let i = 0; i < 3; i++) {
+			const monthStart = new Date(
+				now.getFullYear(),
+				now.getMonth() - (i + 1),
+				1,
+			);
+			const monthEnd = new Date(now.getFullYear(), now.getMonth() - i, 1);
+
+			const monthFasts = fasts.filter((f) => {
+				const fastDate = new Date(f.startTime);
+				return fastDate >= monthStart && fastDate < monthEnd;
+			});
+
+			const monthCompleted = monthFasts.filter((f) => f.completed).length;
+			const monthTotal = monthFasts.length;
+			const monthCompletionRate =
+				monthTotal > 0 ? (monthCompleted / monthTotal) * 100 : 0;
+
+			monthlyTrends.unshift({
+				period: monthStart.toLocaleDateString("en-US", {
+					month: "short",
+					year: "numeric",
+				}),
+				completionRate: monthCompletionRate,
+				totalFasts: monthTotal,
+				completedFasts: monthCompleted,
+			});
+		}
+
+		// Determine overall trend direction
+		let trendDirection = "flat";
+		if (weeklyTrends.length >= 2) {
+			const recent = weeklyTrends[weeklyTrends.length - 1].completionRate;
+			const previous = weeklyTrends[weeklyTrends.length - 2].completionRate;
+
+			if (recent > previous + 10) {
+				trendDirection = "up";
+			} else if (recent < previous - 10) {
+				trendDirection = "down";
+			}
+		}
+
 		setStats({
 			totalFasts,
 			completedFasts,
@@ -106,6 +179,9 @@ const StatsScreen = () => {
 			thisWeekFasts,
 			thisMonthFasts,
 			completionRate,
+			weeklyTrends,
+			monthlyTrends,
+			trendDirection,
 		});
 	}, []);
 
@@ -345,6 +421,192 @@ const StatsScreen = () => {
 						</CardContent>
 					</Card>
 				</Grid>
+
+				{/* Trends - Show completion rate trends over time */}
+				{stats.weeklyTrends.some((t) => t.totalFasts > 0) && (
+					<Grid size={12}>
+						<Card elevation={1}>
+							<CardContent sx={{ py: 4 }}>
+								<Box
+									sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3 }}
+								>
+									<Typography variant="h5" fontWeight={600}>
+										Completion Rate Trends
+									</Typography>
+									{stats.trendDirection === "up" && (
+										<TrendingIcon color="success" />
+									)}
+									{stats.trendDirection === "down" && (
+										<TrendingDownIcon color="error" />
+									)}
+									{stats.trendDirection === "flat" && (
+										<TrendingFlatIcon color="action" />
+									)}
+								</Box>
+
+								<Grid container spacing={3}>
+									{/* Weekly Trends */}
+									<Grid size={{ xs: 12, md: 6 }}>
+										<Typography variant="h6" gutterBottom>
+											Weekly Trends
+										</Typography>
+										<Stack spacing={1}>
+											{stats.weeklyTrends.map((week, index) => (
+												<Box
+													key={week.period}
+													sx={{
+														display: "flex",
+														justifyContent: "space-between",
+														alignItems: "center",
+														p: 1.5,
+														bgcolor:
+															index === stats.weeklyTrends.length - 1
+																? "primary.50"
+																: "background.default",
+														borderRadius: 1,
+														border:
+															index === stats.weeklyTrends.length - 1
+																? `1px solid ${theme.palette.primary.main}20`
+																: "1px solid transparent",
+													}}
+												>
+													<Typography variant="body2" fontWeight={500}>
+														{week.period}
+														{index === stats.weeklyTrends.length - 1 && (
+															<Chip
+																label="Current"
+																size="small"
+																color="primary"
+																sx={{ ml: 1, fontSize: "0.7rem" }}
+															/>
+														)}
+													</Typography>
+													<Box sx={{ textAlign: "right" }}>
+														<Typography
+															variant="body1"
+															fontWeight="bold"
+															color={
+																week.completionRate >= 80
+																	? "success.main"
+																	: week.completionRate >= 60
+																		? "warning.main"
+																		: week.completionRate > 0
+																			? "error.main"
+																			: "text.secondary"
+															}
+														>
+															{week.totalFasts > 0
+																? `${Math.round(week.completionRate)}%`
+																: "No fasts"}
+														</Typography>
+														{week.totalFasts > 0 && (
+															<Typography
+																variant="caption"
+																color="text.secondary"
+															>
+																{week.completedFasts}/{week.totalFasts}{" "}
+																completed
+															</Typography>
+														)}
+													</Box>
+												</Box>
+											))}
+										</Stack>
+									</Grid>
+
+									{/* Monthly Trends */}
+									<Grid size={{ xs: 12, md: 6 }}>
+										<Typography variant="h6" gutterBottom>
+											Monthly Trends
+										</Typography>
+										<Stack spacing={1}>
+											{stats.monthlyTrends.map((month, index) => (
+												<Box
+													key={month.period}
+													sx={{
+														display: "flex",
+														justifyContent: "space-between",
+														alignItems: "center",
+														p: 1.5,
+														bgcolor:
+															index === stats.monthlyTrends.length - 1
+																? "secondary.50"
+																: "background.default",
+														borderRadius: 1,
+														border:
+															index === stats.monthlyTrends.length - 1
+																? `1px solid ${theme.palette.secondary.main}20`
+																: "1px solid transparent",
+													}}
+												>
+													<Typography variant="body2" fontWeight={500}>
+														{month.period}
+														{index === stats.monthlyTrends.length - 1 && (
+															<Chip
+																label="Recent"
+																size="small"
+																color="secondary"
+																sx={{ ml: 1, fontSize: "0.7rem" }}
+															/>
+														)}
+													</Typography>
+													<Box sx={{ textAlign: "right" }}>
+														<Typography
+															variant="body1"
+															fontWeight="bold"
+															color={
+																month.completionRate >= 80
+																	? "success.main"
+																	: month.completionRate >= 60
+																		? "warning.main"
+																		: month.completionRate > 0
+																			? "error.main"
+																			: "text.secondary"
+															}
+														>
+															{month.totalFasts > 0
+																? `${Math.round(month.completionRate)}%`
+																: "No fasts"}
+														</Typography>
+														{month.totalFasts > 0 && (
+															<Typography
+																variant="caption"
+																color="text.secondary"
+															>
+																{month.completedFasts}/{month.totalFasts}{" "}
+																completed
+															</Typography>
+														)}
+													</Box>
+												</Box>
+											))}
+										</Stack>
+									</Grid>
+								</Grid>
+
+								{/* Trend Analysis */}
+								<Box
+									sx={{
+										mt: 3,
+										p: 2,
+										bgcolor: "background.default",
+										borderRadius: 1,
+									}}
+								>
+									<Typography variant="body2" color="text.secondary">
+										💡 <strong>Trend Analysis:</strong>{" "}
+										{stats.trendDirection === "up" &&
+											"Your completion rate is improving! Keep up the great work."}
+										{stats.trendDirection === "down" &&
+											"Your completion rate has decreased recently. Consider adjusting your fasting goals."}
+										{stats.trendDirection === "flat" &&
+											"Your completion rate is stable. Consistency is key to success."}
+									</Typography>
+								</Box>
+							</CardContent>
+						</Card>
+					</Grid>
+				)}
 
 				{/* Achievements - Full width to match the 4 cards above */}
 				<Grid size={12}>
