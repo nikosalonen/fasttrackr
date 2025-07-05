@@ -4,7 +4,10 @@ import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
 import "./styles/window-controls-overlay.css";
-import { registerServiceWorker, setupOnlineOfflineListeners } from "./utils/serviceWorkerManager.js";
+import {
+	registerServiceWorker,
+	setupOnlineOfflineListeners,
+} from "./utils/serviceWorkerManager.js";
 
 // Theme Provider Component
 const DynamicThemeProvider = ({ children }) => {
@@ -101,15 +104,25 @@ const DynamicThemeProvider = ({ children }) => {
 // Initialize PWA features
 const initializePWA = async () => {
 	try {
-		// Register service worker
-		await registerServiceWorker();
+		// Register service worker (may be null in development)
+		const registration = await registerServiceWorker();
 
-		// Setup online/offline listeners
+		if (registration) {
+			console.log("PWA features initialized successfully with service worker");
+		} else {
+			console.log(
+				"PWA features initialized without service worker (development mode)",
+			);
+		}
+
+		// Setup online/offline listeners (works without service worker)
 		setupOnlineOfflineListeners();
-
-		console.log("PWA features initialized successfully");
 	} catch (error) {
 		console.error("Failed to initialize PWA features:", error);
+		// Continue without PWA features in development
+		if (import.meta.env.DEV) {
+			console.log("Continuing without PWA features in development mode");
+		}
 	}
 };
 
