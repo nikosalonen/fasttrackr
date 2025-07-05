@@ -470,17 +470,25 @@ const StatsScreen = () => {
 																: "1px solid transparent",
 													}}
 												>
-													<Typography variant="body2" fontWeight={500}>
-														{week.period}
+													<Box
+														sx={{
+															display: "flex",
+															alignItems: "center",
+															gap: 1,
+														}}
+													>
+														<Typography variant="body2" fontWeight={500}>
+															{week.period}
+														</Typography>
 														{index === stats.weeklyTrends.length - 1 && (
 															<Chip
 																label="Current"
 																size="small"
 																color="primary"
-																sx={{ ml: 1, fontSize: "0.7rem" }}
+																sx={{ fontSize: "0.7rem" }}
 															/>
 														)}
-													</Typography>
+													</Box>
 													<Box sx={{ textAlign: "right" }}>
 														<Typography
 															variant="body1"
@@ -539,17 +547,25 @@ const StatsScreen = () => {
 																: "1px solid transparent",
 													}}
 												>
-													<Typography variant="body2" fontWeight={500}>
-														{month.period}
+													<Box
+														sx={{
+															display: "flex",
+															alignItems: "center",
+															gap: 1,
+														}}
+													>
+														<Typography variant="body2" fontWeight={500}>
+															{month.period}
+														</Typography>
 														{index === stats.monthlyTrends.length - 1 && (
 															<Chip
 																label="Recent"
 																size="small"
 																color="secondary"
-																sx={{ ml: 1, fontSize: "0.7rem" }}
+																sx={{ fontSize: "0.7rem" }}
 															/>
 														)}
-													</Typography>
+													</Box>
 													<Box sx={{ textAlign: "right" }}>
 														<Typography
 															variant="body1"
