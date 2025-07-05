@@ -224,8 +224,8 @@ const StatsScreen = () => {
 				Statistics
 			</Typography>
 
-			<Grid container spacing={3}>
-				{/* Primary Stats - Ensure equal heights */}
+			<Grid container spacing={2.5}>
+				{/* Primary Stats Row - Ensure equal heights and perfect width alignment */}
 				<Grid item xs={6} sm={3}>
 					<StatCard
 						title="Total Fasts"
@@ -264,7 +264,7 @@ const StatsScreen = () => {
 					/>
 				</Grid>
 
-				{/* Detailed Stats */}
+				{/* Detailed Stats - Full width to match the 4 cards above */}
 				<Grid item xs={12}>
 					<Card elevation={1}>
 						<CardContent sx={{ py: 4 }}>
@@ -276,7 +276,7 @@ const StatsScreen = () => {
 								Detailed Statistics
 							</Typography>
 
-							<Grid container spacing={3}>
+							<Grid container spacing={2.5}>
 								<Grid item xs={12} sm={4}>
 									<Box sx={{ textAlign: "center", py: 3 }}>
 										<Typography
@@ -341,7 +341,7 @@ const StatsScreen = () => {
 					</Card>
 				</Grid>
 
-				{/* Achievements */}
+				{/* Achievements - Full width to match the 4 cards above */}
 				<Grid item xs={12}>
 					<Card elevation={1}>
 						<CardContent sx={{ py: 4 }}>
