@@ -9,7 +9,6 @@ import {
 	Info as InfoIcon,
 	Notifications as NotificationIcon,
 	Refresh as RefreshIcon,
-	School as TutorialIcon,
 	Update as UpdateIcon,
 } from "@mui/icons-material";
 import {
@@ -39,7 +38,7 @@ import {
 import React, { useCallback, useEffect, useState } from "react";
 import { useNotifications } from "../hooks/useNotifications";
 import GoalSettings from "./GoalSettings";
-import OnboardingTutorial from "./OnboardingTutorial";
+
 import SupportDeveloper from "./SupportDeveloper";
 import { updateUtils } from "./UpdateNotification";
 
@@ -84,21 +83,11 @@ const SettingsScreen = () => {
 	const [swipeGesturesEnabled, setSwipeGesturesEnabled] = useState(() => {
 		return localStorage.getItem("swipeGesturesEnabled") !== "false";
 	});
-	const [showOnboarding, setShowOnboarding] = useState(false);
 
 	useEffect(() => {
 		// Load dark mode setting
 		setDarkMode(localStorage.getItem("darkMode") === "true");
 	}, []);
-
-	const handleReplayTutorial = () => {
-		setShowOnboarding(true);
-		showSnackbar("Starting tutorial...");
-	};
-
-	const handleOnboardingClose = () => {
-		setShowOnboarding(false);
-	};
 
 	const handleNotificationToggle = async (enabled) => {
 		if (enabled) {
@@ -473,28 +462,6 @@ const SettingsScreen = () => {
 			</Typography>
 
 			<Stack spacing={3}>
-				{/* Help & Tutorial */}
-				<SettingCard
-					title="Help & Tutorial"
-					icon={<TutorialIcon color="primary" />}
-				>
-					<Stack spacing={2}>
-						<Button
-							variant="outlined"
-							startIcon={<TutorialIcon />}
-							onClick={handleReplayTutorial}
-							fullWidth
-						>
-							Replay Tutorial
-						</Button>
-
-						<Typography variant="body2" color="text.secondary">
-							Take the guided tour again to learn about FastTrackr's features
-							and get helpful tips for successful fasting.
-						</Typography>
-					</Stack>
-				</SettingCard>
-
 				{/* Notifications */}
 				<SettingCard
 					title="Notifications"
@@ -946,13 +913,6 @@ const SettingsScreen = () => {
 					<GoalSettings />
 				</DialogContent>
 			</Dialog>
-
-			{/* Onboarding Tutorial */}
-			<OnboardingTutorial
-				open={showOnboarding}
-				onClose={handleOnboardingClose}
-				onTabChange={() => {}} // No tab change needed from settings
-			/>
 
 			{/* Snackbar for notifications */}
 			<Snackbar
