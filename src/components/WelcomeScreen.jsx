@@ -109,7 +109,7 @@ const WelcomeScreen = ({ open, onClose }) => {
 							sx={{ lineHeight: 1.6 }}
 						>
 							If you'd like to support the development of FastTrackr, you can
-							buy me a coffee! You'll find a <strong>"Buy Me a Coffee"</strong>{" "}
+							buy me a coffee! You'll find a <strong>"Buy Me a Beer"</strong>{" "}
 							button in the settings - but it's entirely up to you!
 						</Typography>
 

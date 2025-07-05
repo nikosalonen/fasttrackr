@@ -19,6 +19,7 @@ import {
 import React, { useEffect, useState } from "react";
 import CalendarView from "./components/CalendarView";
 import HistoryScreen from "./components/HistoryScreen";
+import InitialSetup from "./components/InitialSetup";
 import InstallPrompt from "./components/InstallPrompt";
 
 import SettingsScreen from "./components/SettingsScreen";
@@ -35,6 +36,9 @@ function App() {
 	const [isFirstVisit, setIsFirstVisit] = useState(() => {
 		return localStorage.getItem("fasttrackr_first_visit") !== "false";
 	});
+	const [showInitialSetup, setShowInitialSetup] = useState(() => {
+		return localStorage.getItem("initialSetupCompleted") !== "true";
+	});
 
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
@@ -44,6 +48,12 @@ function App() {
 	const markFirstVisitComplete = () => {
 		localStorage.setItem("fasttrackr_first_visit", "false");
 		setIsFirstVisit(false);
+	};
+
+	const handleInitialSetupComplete = () => {
+		setShowInitialSetup(false);
+		// Also mark first visit as complete since setup is more comprehensive
+		markFirstVisitComplete();
 	};
 
 	useEffect(() => {
@@ -230,8 +240,17 @@ function App() {
 					{/* Service Worker Update Notifications */}
 					<UpdateNotification />
 
-					{/* Welcome Screen for First-Time Users */}
-					<WelcomeScreen open={isFirstVisit} onClose={markFirstVisitComplete} />
+					{/* Initial Setup Dialog for New Users */}
+					<InitialSetup
+						open={showInitialSetup}
+						onClose={handleInitialSetupComplete}
+					/>
+
+					{/* Welcome Screen for First-Time Users (fallback if setup is skipped) */}
+					<WelcomeScreen
+						open={isFirstVisit && !showInitialSetup}
+						onClose={markFirstVisitComplete}
+					/>
 				</Box>
 			</NotificationProvider>
 		</FastTimerProvider>

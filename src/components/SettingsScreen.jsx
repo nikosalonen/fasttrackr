@@ -802,6 +802,24 @@ const SettingsScreen = () => {
 							</Button>
 						)}
 
+						{/* Debug: Reset Initial Setup */}
+						{import.meta.env.DEV && (
+							<Button
+								variant="outlined"
+								color="info"
+								onClick={() => {
+									localStorage.removeItem("initialSetupCompleted");
+									localStorage.removeItem("fasttrackr_first_visit");
+									showSnackbar(
+										"Initial setup reset - refresh to see setup dialog (dev mode)",
+									);
+								}}
+								fullWidth
+							>
+								Reset Initial Setup (Dev)
+							</Button>
+						)}
+
 						<Typography variant="body2" color="text.secondary">
 							Check for updates manually or force refresh to clear all cached
 							data and reload the latest version.
