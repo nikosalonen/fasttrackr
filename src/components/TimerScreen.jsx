@@ -453,10 +453,22 @@ const TimerScreen = () => {
 	);
 
 	const useTemplate = useCallback((template) => {
-		setSelectedDuration(template.duration);
-		setShowCustomInput(false);
-		localStorage.setItem("selectedDuration", template.duration.toString());
-		localStorage.setItem("showCustomInput", "false");
+		const standardDurations = [12, 16, 18, 20, 24];
+		const isStandardDuration = standardDurations.includes(template.duration);
+
+		// Always update both states, but only one will be used
+		setSelectedDuration(isStandardDuration ? template.duration : 16);
+		setCustomHours(template.duration.toString());
+		setShowCustomInput(!isStandardDuration);
+
+		// Update localStorage accordingly
+		if (isStandardDuration) {
+			localStorage.setItem("selectedDuration", template.duration.toString());
+			localStorage.setItem("showCustomInput", "false");
+		} else {
+			localStorage.setItem("customHours", template.duration.toString());
+			localStorage.setItem("showCustomInput", "true");
+		}
 	}, []);
 
 	const saveCurrentAsTemplate = useCallback(() => {
