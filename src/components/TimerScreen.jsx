@@ -1,11 +1,14 @@
 import {
+	Add as AddIcon,
 	Cancel as CancelIcon,
+	Delete as DeleteIcon,
 	Edit as EditIcon,
 	ExpandMore as ExpandMoreIcon,
 	PlayArrow as PlayIcon,
 	Save as SaveIcon,
 	Schedule as ScheduleIcon,
 	Stop as StopIcon,
+	Star as StarIcon,
 } from "@mui/icons-material";
 import {
 	Box,
@@ -31,7 +34,7 @@ import {
 	Typography,
 	useTheme,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useFastTimer } from "../hooks/useFastTimer";
 import { useNotifications } from "../hooks/useNotifications";
 import CircularProgressTimer from "./CircularProgressTimer";
@@ -112,6 +115,13 @@ const TimerScreen = () => {
 	const [use12HourClock, setUse12HourClock] = useState(() => {
 		return localStorage.getItem("use12HourClock") !== "false";
 	});
+	const [templates, setTemplates] = useState(() => {
+		const saved = localStorage.getItem("fastTemplates");
+		return saved ? JSON.parse(saved) : [];
+	});
+	const [showTemplateDialog, setShowTemplateDialog] = useState(false);
+	const [newTemplateName, setNewTemplateName] = useState("");
+	const [newTemplateDuration, setNewTemplateDuration] = useState("");
 
 	const progress = getProgress();
 	const completed = isCompleted();
@@ -402,6 +412,64 @@ const TimerScreen = () => {
 
 	const targetHours = Math.floor(targetDuration / (1000 * 60 * 60));
 
+	// Template management functions
+	const saveTemplate = useCallback(() => {
+		if (!newTemplateName.trim()) {
+			alert("Please enter a template name");
+			return;
+		}
+
+		const duration = parseInt(newTemplateDuration);
+		if (!duration || duration <= 0 || duration > 168) {
+			alert("Please enter a valid duration (1-168 hours)");
+			return;
+		}
+
+		const template = {
+			id: Date.now(),
+			name: newTemplateName.trim(),
+			duration: duration,
+			createdAt: new Date().toISOString(),
+		};
+
+		const updatedTemplates = [...templates, template];
+		setTemplates(updatedTemplates);
+		localStorage.setItem("fastTemplates", JSON.stringify(updatedTemplates));
+
+		setNewTemplateName("");
+		setNewTemplateDuration("");
+		setShowTemplateDialog(false);
+	}, [newTemplateName, newTemplateDuration, templates]);
+
+	const deleteTemplate = useCallback(
+		(templateId) => {
+			if (window.confirm("Are you sure you want to delete this template?")) {
+				const updatedTemplates = templates.filter((t) => t.id !== templateId);
+				setTemplates(updatedTemplates);
+				localStorage.setItem("fastTemplates", JSON.stringify(updatedTemplates));
+			}
+		},
+		[templates],
+	);
+
+	const useTemplate = useCallback((template) => {
+		setSelectedDuration(template.duration);
+		setShowCustomInput(false);
+		localStorage.setItem("selectedDuration", template.duration.toString());
+		localStorage.setItem("showCustomInput", "false");
+	}, []);
+
+	const saveCurrentAsTemplate = useCallback(() => {
+		const duration = showCustomInput ? parseInt(customHours) : selectedDuration;
+		if (!duration || duration <= 0) {
+			alert("Please select a valid duration first");
+			return;
+		}
+
+		setNewTemplateDuration(duration.toString());
+		setShowTemplateDialog(true);
+	}, [showCustomInput, customHours, selectedDuration]);
+
 	return (
 		<Box sx={{ maxWidth: 600, mx: "auto", mt: 2 }}>
 			<Stack spacing={3}>
@@ -637,6 +705,73 @@ const TimerScreen = () => {
 											/>
 										</Fade>
 									)}
+
+									{/* Save Current as Template Button */}
+									<Box
+										sx={{ display: "flex", justifyContent: "center", mt: 2 }}
+									>
+										<Button
+											variant="outlined"
+											startIcon={<StarIcon />}
+											onClick={saveCurrentAsTemplate}
+											size="small"
+										>
+											Save as Template
+										</Button>
+									</Box>
+
+									{/* Template Selection */}
+									{templates.length > 0 && (
+										<Box sx={{ mt: 3 }}>
+											<Typography variant="subtitle2" gutterBottom>
+												Quick Templates
+											</Typography>
+											<Stack spacing={1}>
+												{templates.map((template) => (
+													<Box
+														key={template.id}
+														sx={{
+															display: "flex",
+															alignItems: "center",
+															justifyContent: "space-between",
+															p: 1,
+															border: 1,
+															borderColor: "divider",
+															borderRadius: 1,
+														}}
+													>
+														<Box sx={{ flex: 1 }}>
+															<Typography variant="body2" fontWeight="medium">
+																{template.name}
+															</Typography>
+															<Typography
+																variant="caption"
+																color="text.secondary"
+															>
+																{template.duration}h duration
+															</Typography>
+														</Box>
+														<Stack direction="row" spacing={1}>
+															<Button
+																size="small"
+																onClick={() => useTemplate(template)}
+																variant="outlined"
+															>
+																Use
+															</Button>
+															<IconButton
+																size="small"
+																onClick={() => deleteTemplate(template.id)}
+																color="error"
+															>
+																<DeleteIcon fontSize="small" />
+															</IconButton>
+														</Stack>
+													</Box>
+												))}
+											</Stack>
+										</Box>
+									)}
 								</Stack>
 							</CardContent>
 						</Card>
@@ -709,6 +844,42 @@ const TimerScreen = () => {
 						{celebrationMessage}
 					</Alert>
 				</Snackbar>
+
+				{/* Template Creation Dialog */}
+				<Dialog
+					open={showTemplateDialog}
+					onClose={() => setShowTemplateDialog(false)}
+					maxWidth="sm"
+					fullWidth
+				>
+					<DialogTitle>Save Fast Template</DialogTitle>
+					<DialogContent>
+						<Stack spacing={2} sx={{ mt: 1 }}>
+							<TextField
+								label="Template Name"
+								value={newTemplateName}
+								onChange={(e) => setNewTemplateName(e.target.value)}
+								placeholder="e.g., Weekend 24h, Weekday 16h"
+								fullWidth
+								autoFocus
+							/>
+							<TextField
+								label="Duration (hours)"
+								type="number"
+								value={newTemplateDuration}
+								onChange={(e) => setNewTemplateDuration(e.target.value)}
+								inputProps={{ min: 1, max: 168 }}
+								fullWidth
+							/>
+						</Stack>
+					</DialogContent>
+					<DialogActions>
+						<Button onClick={() => setShowTemplateDialog(false)}>Cancel</Button>
+						<Button onClick={saveTemplate} variant="contained">
+							Save Template
+						</Button>
+					</DialogActions>
+				</Dialog>
 			</Stack>
 		</Box>
 	);
