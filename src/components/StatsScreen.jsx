@@ -14,7 +14,7 @@ import {
 	Typography,
 	useTheme,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 const StatsScreen = () => {
 	const theme = useTheme();
@@ -30,11 +30,7 @@ const StatsScreen = () => {
 		completionRate: 0,
 	});
 
-	useEffect(() => {
-		calculateStats();
-	}, []);
-
-	const calculateStats = () => {
+	const calculateStats = useCallback(() => {
 		const fasts = JSON.parse(localStorage.getItem("fastHistory") || "[]");
 		const now = new Date();
 
@@ -106,7 +102,11 @@ const StatsScreen = () => {
 			thisMonthFasts,
 			completionRate,
 		});
-	};
+	}, []);
+
+	useEffect(() => {
+		calculateStats();
+	}, [calculateStats]);
 
 	const formatDuration = (milliseconds) => {
 		const totalSeconds = Math.floor(milliseconds / 1000);
@@ -133,34 +133,74 @@ const StatsScreen = () => {
 	};
 
 	const StatCard = ({ title, value, subtitle, icon, color = "primary" }) => (
-		<Card elevation={1}>
-			<CardContent>
-				<Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+		<Card elevation={1} sx={{ height: "100%" }}>
+			<CardContent
+				sx={{
+					height: "100%",
+					display: "flex",
+					flexDirection: "column",
+					justifyContent: "space-between",
+					py: 3,
+				}}
+			>
+				<Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
 					<Box
 						sx={{
 							backgroundColor: `${color}.main`,
 							color: "white",
-							borderRadius: 1,
-							p: 1,
+							borderRadius: 2,
+							p: 1.5,
 							mr: 2,
 							display: "flex",
 							alignItems: "center",
+							justifyContent: "center",
+							minWidth: 48,
+							minHeight: 48,
 						}}
 					>
 						{icon}
 					</Box>
-					<Typography variant="h6" color="text.secondary" fontSize="0.875rem">
+					<Typography
+						variant="subtitle1"
+						color="text.secondary"
+						fontWeight={500}
+						sx={{ lineHeight: 1.2 }}
+					>
 						{title}
 					</Typography>
 				</Box>
-				<Typography variant="h4" fontWeight="bold" color={`${color}.main`}>
-					{value}
-				</Typography>
-				{subtitle && (
-					<Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-						{subtitle}
+
+				<Box
+					sx={{
+						textAlign: "center",
+						flex: 1,
+						display: "flex",
+						flexDirection: "column",
+						justifyContent: "center",
+					}}
+				>
+					<Typography
+						variant="h3"
+						fontWeight="bold"
+						color={`${color}.main`}
+						sx={{ mb: 0.5, lineHeight: 1 }}
+					>
+						{value}
 					</Typography>
-				)}
+					{subtitle && (
+						<Typography
+							variant="caption"
+							color="text.secondary"
+							sx={{
+								fontSize: "0.8rem",
+								lineHeight: 1.2,
+								display: "block",
+							}}
+						>
+							{subtitle}
+						</Typography>
+					)}
+				</Box>
 			</CardContent>
 		</Card>
 	);
@@ -180,13 +220,13 @@ const StatsScreen = () => {
 
 	return (
 		<Box sx={{ maxWidth: 1000, mx: "auto" }}>
-			<Typography variant="h4" gutterBottom sx={{ mb: 3 }}>
+			<Typography variant="h4" gutterBottom sx={{ mb: 4, fontWeight: 600 }}>
 				Statistics
 			</Typography>
 
 			<Grid container spacing={3}>
-				{/* Primary Stats */}
-				<Grid item xs={12} sm={6} md={3}>
+				{/* Primary Stats - Ensure equal heights */}
+				<Grid item xs={6} sm={3}>
 					<StatCard
 						title="Total Fasts"
 						value={stats.totalFasts}
@@ -195,7 +235,7 @@ const StatsScreen = () => {
 					/>
 				</Grid>
 
-				<Grid item xs={12} sm={6} md={3}>
+				<Grid item xs={6} sm={3}>
 					<StatCard
 						title="Completed"
 						value={stats.completedFasts}
@@ -205,16 +245,17 @@ const StatsScreen = () => {
 					/>
 				</Grid>
 
-				<Grid item xs={12} sm={6} md={3}>
+				<Grid item xs={6} sm={3}>
 					<StatCard
 						title="Current Streak"
-						value={`${stats.currentStreak} days`}
+						value={`${stats.currentStreak}`}
+						subtitle="days"
 						icon={<StreakIcon />}
 						color="warning"
 					/>
 				</Grid>
 
-				<Grid item xs={12} sm={6} md={3}>
+				<Grid item xs={6} sm={3}>
 					<StatCard
 						title="Longest Fast"
 						value={formatDuration(stats.longestFast)}
@@ -226,52 +267,71 @@ const StatsScreen = () => {
 				{/* Detailed Stats */}
 				<Grid item xs={12}>
 					<Card elevation={1}>
-						<CardContent>
-							<Typography variant="h6" gutterBottom>
+						<CardContent sx={{ py: 4 }}>
+							<Typography
+								variant="h5"
+								gutterBottom
+								sx={{ mb: 3, fontWeight: 600 }}
+							>
 								Detailed Statistics
 							</Typography>
 
-							<Grid container spacing={2}>
-								<Grid item xs={12} sm={6} md={4}>
-									<Box sx={{ textAlign: "center", py: 2 }}>
+							<Grid container spacing={3}>
+								<Grid item xs={12} sm={4}>
+									<Box sx={{ textAlign: "center", py: 3 }}>
 										<Typography
-											variant="h5"
+											variant="h4"
 											fontWeight="bold"
 											color="primary.main"
+											sx={{ mb: 1 }}
 										>
 											{formatDuration(stats.averageDuration)}
 										</Typography>
-										<Typography variant="body2" color="text.secondary">
+										<Typography
+											variant="subtitle1"
+											color="text.secondary"
+											fontWeight={500}
+										>
 											Average Duration
 										</Typography>
 									</Box>
 								</Grid>
 
-								<Grid item xs={12} sm={6} md={4}>
-									<Box sx={{ textAlign: "center", py: 2 }}>
+								<Grid item xs={12} sm={4}>
+									<Box sx={{ textAlign: "center", py: 3 }}>
 										<Typography
-											variant="h5"
+											variant="h4"
 											fontWeight="bold"
 											color="secondary.main"
+											sx={{ mb: 1 }}
 										>
 											{formatTotalTime(stats.totalTime)}
 										</Typography>
-										<Typography variant="body2" color="text.secondary">
+										<Typography
+											variant="subtitle1"
+											color="text.secondary"
+											fontWeight={500}
+										>
 											Total Fasting Time
 										</Typography>
 									</Box>
 								</Grid>
 
-								<Grid item xs={12} sm={6} md={4}>
-									<Box sx={{ textAlign: "center", py: 2 }}>
+								<Grid item xs={12} sm={4}>
+									<Box sx={{ textAlign: "center", py: 3 }}>
 										<Typography
-											variant="h5"
+											variant="h4"
 											fontWeight="bold"
 											color="info.main"
+											sx={{ mb: 1 }}
 										>
 											{stats.thisWeekFasts}
 										</Typography>
-										<Typography variant="body2" color="text.secondary">
+										<Typography
+											variant="subtitle1"
+											color="text.secondary"
+											fontWeight={500}
+										>
 											This Week
 										</Typography>
 									</Box>
@@ -284,61 +344,71 @@ const StatsScreen = () => {
 				{/* Achievements */}
 				<Grid item xs={12}>
 					<Card elevation={1}>
-						<CardContent>
-							<Typography variant="h6" gutterBottom>
+						<CardContent sx={{ py: 4 }}>
+							<Typography
+								variant="h5"
+								gutterBottom
+								sx={{ mb: 3, fontWeight: 600 }}
+							>
 								Achievements
 							</Typography>
 
-							<Stack direction="row" spacing={1} flexWrap="wrap" gap={1}>
+							<Stack direction="row" spacing={1} flexWrap="wrap" gap={1.5}>
 								{stats.totalFasts >= 1 && (
 									<Chip
 										label="First Fast! 🎉"
 										color="primary"
-										variant="outlined"
+										variant="filled"
+										sx={{ fontSize: "0.875rem", py: 2 }}
 									/>
 								)}
 								{stats.totalFasts >= 10 && (
 									<Chip
 										label="10 Fasts Milestone! 🏆"
 										color="success"
-										variant="outlined"
+										variant="filled"
+										sx={{ fontSize: "0.875rem", py: 2 }}
 									/>
 								)}
 								{stats.totalFasts >= 50 && (
 									<Chip
 										label="50 Fasts Champion! 👑"
 										color="warning"
-										variant="outlined"
+										variant="filled"
+										sx={{ fontSize: "0.875rem", py: 2 }}
 									/>
 								)}
 								{stats.currentStreak >= 7 && (
 									<Chip
 										label="Week Streak! 🔥"
 										color="error"
-										variant="outlined"
+										variant="filled"
+										sx={{ fontSize: "0.875rem", py: 2 }}
 									/>
 								)}
 								{stats.completionRate >= 80 && (
 									<Chip
 										label="High Completion Rate! ⭐"
 										color="info"
-										variant="outlined"
+										variant="filled"
+										sx={{ fontSize: "0.875rem", py: 2 }}
 									/>
 								)}
 								{stats.longestFast >= 24 * 60 * 60 * 1000 && (
 									<Chip
 										label="24+ Hour Fast! 💪"
 										color="secondary"
-										variant="outlined"
+										variant="filled"
+										sx={{ fontSize: "0.875rem", py: 2 }}
 									/>
 								)}
 							</Stack>
 
 							{stats.totalFasts < 5 && (
 								<Typography
-									variant="body2"
+									variant="body1"
 									color="text.secondary"
-									sx={{ mt: 2 }}
+									sx={{ mt: 3, textAlign: "center", fontStyle: "italic" }}
 								>
 									Complete more fasts to unlock achievements!
 								</Typography>
