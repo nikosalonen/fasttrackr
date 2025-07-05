@@ -87,6 +87,9 @@ const TimerScreen = () => {
 	const [notifiedCustomMilestones, setNotifiedCustomMilestones] = useState(
 		new Set(),
 	);
+	const [use12HourClock, setUse12HourClock] = useState(() => {
+		return localStorage.getItem("use12HourClock") !== "false";
+	});
 
 	const progress = getProgress();
 	const completed = isCompleted();
@@ -124,6 +127,21 @@ const TimerScreen = () => {
 		setUseCompactTimeFormat(newFormat);
 		localStorage.setItem("useCompactTimeFormat", newFormat.toString());
 	};
+
+	// Listen for changes to 12-hour clock setting
+	useEffect(() => {
+		const handleStorageChange = (e) => {
+			if (e.key === "use12HourClock") {
+				setUse12HourClock(e.newValue !== "false");
+			}
+		};
+
+		window.addEventListener("storage", handleStorageChange);
+
+		return () => {
+			window.removeEventListener("storage", handleStorageChange);
+		};
+	}, []);
 
 	// Handle fast completion notification
 	useEffect(() => {
@@ -264,7 +282,7 @@ const TimerScreen = () => {
 		return endTime.toLocaleString(undefined, {
 			hour: "2-digit",
 			minute: "2-digit",
-			hour12: false,
+			hour12: use12HourClock,
 		});
 	};
 
@@ -303,7 +321,7 @@ const TimerScreen = () => {
 			day: "numeric",
 			hour: "2-digit",
 			minute: "2-digit",
-			hour12: true,
+			hour12: use12HourClock,
 		});
 	};
 

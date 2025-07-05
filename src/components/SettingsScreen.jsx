@@ -56,6 +56,18 @@ const SettingsScreen = () => {
 		return saved ? JSON.parse(saved) : [];
 	});
 	const [newMilestone, setNewMilestone] = useState("");
+	const [quietHoursEnabled, setQuietHoursEnabled] = useState(() => {
+		return localStorage.getItem("quietHoursEnabled") === "true";
+	});
+	const [quietHoursStart, setQuietHoursStart] = useState(() => {
+		return localStorage.getItem("quietHoursStart") || "23:00";
+	});
+	const [quietHoursEnd, setQuietHoursEnd] = useState(() => {
+		return localStorage.getItem("quietHoursEnd") || "07:00";
+	});
+	const [use12HourClock, setUse12HourClock] = useState(() => {
+		return localStorage.getItem("use12HourClock") !== "false";
+	});
 
 	useEffect(() => {
 		// Load dark mode setting
@@ -106,6 +118,28 @@ const SettingsScreen = () => {
 				? "Milestone notifications enabled"
 				: "Milestone notifications disabled",
 		);
+	};
+
+	const handleQuietHoursToggle = (enabled) => {
+		setQuietHoursEnabled(enabled);
+		localStorage.setItem("quietHoursEnabled", enabled.toString());
+		showSnackbar(enabled ? "Quiet hours enabled" : "Quiet hours disabled");
+	};
+
+	const handleQuietHoursStartChange = (time) => {
+		setQuietHoursStart(time);
+		localStorage.setItem("quietHoursStart", time);
+	};
+
+	const handleQuietHoursEndChange = (time) => {
+		setQuietHoursEnd(time);
+		localStorage.setItem("quietHoursEnd", time);
+	};
+
+	const handle12HourClockToggle = (enabled) => {
+		setUse12HourClock(enabled);
+		localStorage.setItem("use12HourClock", enabled.toString());
+		showSnackbar(enabled ? "12-hour clock enabled" : "24-hour clock enabled");
 	};
 
 	const addCustomMilestone = () => {
@@ -164,6 +198,10 @@ const SettingsScreen = () => {
 				milestoneNotifications: localStorage.getItem("milestoneNotifications"),
 				darkMode: localStorage.getItem("darkMode"),
 				customMilestones: localStorage.getItem("customMilestones"),
+				quietHoursEnabled: localStorage.getItem("quietHoursEnabled"),
+				quietHoursStart: localStorage.getItem("quietHoursStart"),
+				quietHoursEnd: localStorage.getItem("quietHoursEnd"),
+				use12HourClock: localStorage.getItem("use12HourClock"),
 			};
 
 			const exportData = {
@@ -251,6 +289,28 @@ const SettingsScreen = () => {
 						JSON.parse(data.settings.customMilestones || "[]"),
 					);
 				}
+				if (data.settings.quietHoursEnabled !== undefined) {
+					localStorage.setItem(
+						"quietHoursEnabled",
+						data.settings.quietHoursEnabled,
+					);
+					setQuietHoursEnabled(data.settings.quietHoursEnabled === "true");
+				}
+				if (data.settings.quietHoursStart !== undefined) {
+					localStorage.setItem(
+						"quietHoursStart",
+						data.settings.quietHoursStart,
+					);
+					setQuietHoursStart(data.settings.quietHoursStart);
+				}
+				if (data.settings.quietHoursEnd !== undefined) {
+					localStorage.setItem("quietHoursEnd", data.settings.quietHoursEnd);
+					setQuietHoursEnd(data.settings.quietHoursEnd);
+				}
+				if (data.settings.use12HourClock !== undefined) {
+					localStorage.setItem("use12HourClock", data.settings.use12HourClock);
+					setUse12HourClock(data.settings.use12HourClock === "true");
+				}
 			}
 
 			setImportDialogOpen(false);
@@ -274,6 +334,10 @@ const SettingsScreen = () => {
 		localStorage.removeItem("milestoneNotifications");
 		localStorage.removeItem("darkMode");
 		localStorage.removeItem("customMilestones");
+		localStorage.removeItem("quietHoursEnabled");
+		localStorage.removeItem("quietHoursStart");
+		localStorage.removeItem("quietHoursEnd");
+		localStorage.removeItem("use12HourClock");
 
 		setClearDialogOpen(false);
 		showSnackbar("All data cleared successfully!");
@@ -433,6 +497,59 @@ const SettingsScreen = () => {
 							Get notified when you complete fasts and reach milestones like 16
 							hours, 24 hours, etc.
 						</Typography>
+
+						{/* Quiet Hours */}
+						{notificationsEnabled && (
+							<Box sx={{ mt: 2 }}>
+								<FormControlLabel
+									control={
+										<Switch
+											checked={quietHoursEnabled}
+											onChange={(e) => handleQuietHoursToggle(e.target.checked)}
+										/>
+									}
+									label="Quiet Hours"
+								/>
+
+								{quietHoursEnabled && (
+									<Box sx={{ mt: 2 }}>
+										<Typography
+											variant="caption"
+											color="text.secondary"
+											sx={{ mb: 1 }}
+										>
+											Notifications will be disabled during these hours:
+										</Typography>
+										<Stack direction="row" spacing={2} sx={{ mt: 1 }}>
+											<TextField
+												label="Start Time"
+												type="time"
+												value={quietHoursStart}
+												onChange={(e) =>
+													handleQuietHoursStartChange(e.target.value)
+												}
+												size="small"
+												InputLabelProps={{
+													shrink: true,
+												}}
+											/>
+											<TextField
+												label="End Time"
+												type="time"
+												value={quietHoursEnd}
+												onChange={(e) =>
+													handleQuietHoursEndChange(e.target.value)
+												}
+												size="small"
+												InputLabelProps={{
+													shrink: true,
+												}}
+											/>
+										</Stack>
+									</Box>
+								)}
+							</Box>
+						)}
 					</Stack>
 				</SettingCard>
 
@@ -449,8 +566,19 @@ const SettingsScreen = () => {
 							label="Dark Mode"
 						/>
 
+						<FormControlLabel
+							control={
+								<Switch
+									checked={use12HourClock}
+									onChange={(e) => handle12HourClockToggle(e.target.checked)}
+								/>
+							}
+							label="12-Hour Clock"
+						/>
+
 						<Typography variant="body2" color="text.secondary">
 							Toggle between light and dark themes for better viewing comfort.
+							Use 12-hour or 24-hour time format for displaying times.
 						</Typography>
 					</Stack>
 				</SettingCard>

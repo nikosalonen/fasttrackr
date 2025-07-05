@@ -41,6 +41,9 @@ const HistoryScreen = () => {
 	const [selectedFast, setSelectedFast] = useState(null);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [activeFilters, setActiveFilters] = useState(new Set());
+	const [use12HourClock, setUse12HourClock] = useState(() => {
+		return localStorage.getItem("use12HourClock") !== "false";
+	});
 
 	const loadHistory = useCallback(() => {
 		const history = JSON.parse(localStorage.getItem("fastHistory") || "[]");
@@ -50,6 +53,21 @@ const HistoryScreen = () => {
 	useEffect(() => {
 		loadHistory();
 	}, [loadHistory]);
+
+	// Listen for changes to 12-hour clock setting
+	useEffect(() => {
+		const handleStorageChange = (e) => {
+			if (e.key === "use12HourClock") {
+				setUse12HourClock(e.newValue !== "false");
+			}
+		};
+
+		window.addEventListener("storage", handleStorageChange);
+
+		return () => {
+			window.removeEventListener("storage", handleStorageChange);
+		};
+	}, []);
 
 	const formatDuration = useCallback((milliseconds) => {
 		const totalSeconds = Math.floor(milliseconds / 1000);
@@ -63,9 +81,15 @@ const HistoryScreen = () => {
 		}
 	}, []);
 
-	const formatDateTime = useCallback((dateString) => {
-		return dayjs(dateString).format("MMM D, YYYY h:mm A");
-	}, []);
+	const formatDateTime = useCallback(
+		(dateString) => {
+			const format = use12HourClock
+				? "MMM D, YYYY h:mm A"
+				: "MMM D, YYYY HH:mm";
+			return dayjs(dateString).format(format);
+		},
+		[use12HourClock],
+	);
 
 	// Filter definitions
 	const filterOptions = useMemo(
